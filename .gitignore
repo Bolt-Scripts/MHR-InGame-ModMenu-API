@@ -1,0 +1,5 @@
+
+*.log
+Build
+Intermediate
+.vs

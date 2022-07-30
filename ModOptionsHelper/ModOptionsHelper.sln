@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModOptionsHelper", "ModOptionsHelper.vcxproj", "{2F09DE82-EC09-489D-B28C-33F77146C492}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4039B48F-437D-4B69-9378-7A416A3E68CA} = {4039B48F-437D-4B69-9378-7A416A3E68CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuaLib", "LuaLib\LuaLib.vcxproj", "{4039B48F-437D-4B69-9378-7A416A3E68CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2F09DE82-EC09-489D-B28C-33F77146C492}.Debug|x64.ActiveCfg = Debug|x64
+		{2F09DE82-EC09-489D-B28C-33F77146C492}.Debug|x64.Build.0 = Debug|x64
+		{2F09DE82-EC09-489D-B28C-33F77146C492}.Release|x64.ActiveCfg = Release|x64
+		{2F09DE82-EC09-489D-B28C-33F77146C492}.Release|x64.Build.0 = Release|x64
+		{4039B48F-437D-4B69-9378-7A416A3E68CA}.Debug|x64.ActiveCfg = Debug|x64
+		{4039B48F-437D-4B69-9378-7A416A3E68CA}.Debug|x64.Build.0 = Debug|x64
+		{4039B48F-437D-4B69-9378-7A416A3E68CA}.Release|x64.ActiveCfg = Release|x64
+		{4039B48F-437D-4B69-9378-7A416A3E68CA}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1EBEAD4A-6518-4099-B968-5107A10A1A2A}
+	EndGlobalSection
+EndGlobal
