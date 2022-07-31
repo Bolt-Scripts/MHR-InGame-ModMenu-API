@@ -104,6 +104,9 @@ local OpenMenu_STRING = ("Open Menu");
 local Back_SUID = StringToSuid("Back To Mod List");
 local Null_SUID = StringToSuid("Null");
 local Return_SUID = StringToSuid("Return to the list of mods.")
+local OpenMenu_ARR = CreateGuidArray(1, {OpenMenu_STRING});
+local Go_ARR = CreateGuidArray(1, {Go_STRING});
+
 
 
 
@@ -334,8 +337,8 @@ local function AddNewModOptionButton(mod)
 	mod.modNameSuid = SetBaseDataOptionName(newBaseData, mod.modName);
 	SetBaseDataOptionMessage(newBaseData, mod.description);
 	
-	newData._SelectNum = 1;
-	newBaseData.OptionItemName = CreateGuidArray(1, {OpenMenu_STRING});
+	newData._SelectNum = 0;
+	newBaseData.OptionItemName = OpenMenu_ARR;
 	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
 	
 	modBaseDataList = AppendArray(modBaseDataList, sdk.typeof("snow.StmUnifiedOptionBaseData"), unifiedBaseData);
@@ -351,8 +354,8 @@ local function GetBackButtonData()
 	newBaseData:write_dword(OptionName_OFFSET, Back_SUID);
 	newBaseData:write_dword(OptionMessage_OFFSET, Return_SUID);
 	
-	newData._SelectNum = 1;
-	newBaseData.OptionItemName = CreateGuidArray(1, {Go_STRING});
+	newData._SelectNum = 0;
+	newBaseData.OptionItemName = Go_ARR;
 	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
 	
 	return unifiedBaseData, unifiedData;
@@ -396,7 +399,7 @@ end
 local function SwapOptionArray(toBaseArray, toDataArray)
 	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
 	optionWindow:setOpenOption(SAVE_DATA_IDX);
-	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is necessary but its prob fine
+	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
 end
 
 local needsRepaint = false;
@@ -475,7 +478,7 @@ local function PreOpt(args)
 	--log.debug("Str: " .. sdk.to_managed_object(str):call("ToString()") .. " : " .. type);
 	
 	if (sdk.to_int64(args[4]) == 40) and GetIsModsTabSelected() then
-		if not modMenuIsOpen then
+		if not modMenuIsOpen and optionWindow._State == 1 then
 			args[3] = ModsListDesc_Ptr;
 		end
 	else
@@ -594,7 +597,10 @@ local function PreOptionChange(args)
 	if GetIsModsTabSelected() then
 		if displayedList ~= modBaseDataList and (not modMenuIsOpen) then
 			
-			SetUnifiedOptionArrays(SAVE_DATA_IDX, modBaseDataList, modDataList);
+			--cant believe this worked but need to do a proper -reswap or else for some reason some of the data isnt fully reloaded
+			--it feels kinda like its caching the list count somewhere before this so only the first item updates properly
+			SwapOptionArray(modBaseDataList, modDataList);
+			return sdk.PreHookResult.SKIP_ORIGINAL;
 		end
 	else
 		modMenuIsOpen = false;
@@ -677,6 +683,14 @@ end
 
 
 local function PreOptWindowUpdate(args)
+
+	if _CModUiPromptCoRo then
+		if not coroutine.resume(_CModUiPromptCoRo) then
+			_CModUiPromptCoRo = nil;
+		else
+			return sdk.PreHookResult.SKIP_ORIGINAL;
+		end
+	end
 
 	local mod = _CModUiCurMod;
 	if not mod then

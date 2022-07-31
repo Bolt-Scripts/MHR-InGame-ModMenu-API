@@ -6,7 +6,8 @@
 --Global mod variables
 if not _CModUiList then
 	_CModUiList = {};
-	_CModUiCurMod = nil;	
+	_CModUiCurMod = nil;
+	_CModUiPromptCoRo = nil;
 end
 
 
@@ -42,6 +43,8 @@ function ModUI.OnMenu(name, descript, uiCallback)
 	--should be fine since the ui functions will simply return the initial values anyway
 	_CModUiCurMod = mod;
 	uiCallback();
+	
+	return mod;
 end
 
 function ModUI.Repaint()
@@ -187,6 +190,52 @@ function ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessa
 	opt.wasChanged = false;
 	opt.oldValue = opt.value;
 	return opt.value, changed;
+end
+
+
+
+function ModUI.PromptMsg(promptMessage, callback)
+
+	_CModUiPromptCoRo = coroutine.create(function()
+	
+		local gui_mgr = sdk.get_managed_singleton("snow.gui.GuiManager")
+      gui_mgr:call(
+          "setOpenInfo(System.String, snow.gui.GuiCommonInfoBase.Type, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean, System.Boolean)"
+          , promptMessage, 0x1, 0x32, false, false)
+
+      coroutine.yield();
+
+      while not gui_mgr:updateInfoWindow() do
+          coroutine.yield();
+      end		
+		
+		if callback then callback(); end
+	end);	
+end
+
+function ModUI.PromptYN(promptMessage, callback)
+
+	_CModUiPromptCoRo = coroutine.create(function()
+	
+		local result = 2;
+	
+		local guiMgr = sdk.get_managed_singleton("snow.gui.GuiManager");
+		guiMgr:call(
+					"setOpenYNInfo(System.String, snow.gui.GuiManager.YNInfoUIState, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean, System.Boolean)"
+					,
+					promptMessage, 0, 0x32, false, false
+			)
+	
+		coroutine.yield();
+		while result == 2 do
+			result = guiMgr:updateYNInfoWindow(0xaa66032d);
+			coroutine.yield();
+		end
+		
+		guiMgr:closeYNInfo();
+		
+		if callback then callback(result == 0); end
+	end);	
 end
 
 
