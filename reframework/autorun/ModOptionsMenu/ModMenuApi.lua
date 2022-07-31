@@ -193,6 +193,15 @@ function ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessa
 end
 
 
+local offOn = {"Off","On"};
+local offOnMsg = {"Disabled.","Enabled."};
+function ModUI.Toggle(label, toolTip, curValue)
+	local idx = curValue and 1 or 0;
+	local optSel, changed = ModUI.Options(label, toolTip, idx, 2, offOn, offOnMsg);
+	return (optSel == 1), changed;
+end
+
+
 
 function ModUI.PromptMsg(promptMessage, callback)
 

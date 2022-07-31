@@ -99,8 +99,8 @@ end
 local ModsListName_Str = sdk.create_managed_string("Mods"):add_ref_permanent();
 local ModsListName_Ptr = sdk.to_ptr(ModsListName_Str);
 local ModsListDesc_Ptr = sdk.to_ptr(sdk.create_managed_string("Adjust settings for mods using the <col YEL>custom mod menu.</col>"):add_ref_permanent());
-local Go_STRING = ("Go");
-local OpenMenu_STRING = ("Open Menu");
+local Go_STRING = ("<COL YEL>Go</COL>");
+local OpenMenu_STRING = ("<COL YEL>Open Menu</COL>");
 local Back_SUID = StringToSuid("Back To Mod List");
 local Null_SUID = StringToSuid("Null");
 local Return_SUID = StringToSuid("Return to the list of mods.")
@@ -345,6 +345,26 @@ local function AddNewModOptionButton(mod)
 	modDataList = AppendArray(modDataList, sdk.typeof("snow.StmUnifiedOptionData"), unifiedData);
 end
 
+local function AddCreditsEntry()
+
+	
+	local unifiedBaseData, newBaseData = GetNewBaseData();
+	local unifiedData, newData = GetNewData();
+	
+	
+	SetBaseDataOptionName(newBaseData, "Created By: <COL RED>Bolt</COL>");
+	SetBaseDataOptionMessage(newBaseData, "Hi, it's <COL YEL>me.</COL>\n\nI made the mod menu ツ");
+	
+	newBaseData.PartsType = WATCHITEM;
+	newData._DataType = WATCHITEM;
+	
+	newData._SelectNum = 0;
+	newBaseData.OptionItemName = defaultSelMsgGuidArr;
+	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
+	
+	modBaseDataList = AppendArray(modBaseDataList, sdk.typeof("snow.StmUnifiedOptionBaseData"), unifiedBaseData);
+	modDataList = AppendArray(modDataList, sdk.typeof("snow.StmUnifiedOptionData"), unifiedData);
+end
 
 local function GetBackButtonData()
 
@@ -391,6 +411,8 @@ local function CreateOptionDataArrays(mod)
 		dataArray[idx] = unifiedData;
    end
 	
+	
+	
 	mod.unifiedBaseArray = baseDataArray;
 	mod.unifiedArray = dataArray;	
 end
@@ -433,7 +455,7 @@ end
 
 local function FirstOpen()	
 	
-	defaultSelMsgGuidArr = CreateGuidArray(1, "");
+	defaultSelMsgGuidArr = CreateGuidArray(1, {""});
 	
 	--need to store this here so we can swap between arrays later
 	mainBaseDataList, mainDataList = GetUnifiedOptionArrays(SAVE_DATA_IDX);
@@ -445,6 +467,8 @@ local function FirstOpen()
 		CreateOptionDataArrays(mod);
 		AddNewModOptionButton(mod);
    end
+	
+	AddCreditsEntry();
 	
 end
 
@@ -708,8 +732,7 @@ local function PreOptWindowUpdate(args)
 	end
 end
 
---re.on_frame(function()
---end)
+
 sdk.hook(optionWindowType:get_method("updateOptionOperation()"), PreOptWindowUpdate, PostDef, ignoreJmp);
 
 

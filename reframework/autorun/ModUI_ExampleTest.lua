@@ -9,6 +9,7 @@ local apiPackageName = "ModOptionsMenu.ModMenuApi";
 local settings = {
 	slide1 = 42;
 	select1 = 0;
+	toggle1 = false;
 }
 
 
@@ -52,6 +53,8 @@ RED
 GRAY
 --]]
 
+--Technicallyyyy I think theres some weird formatting to get key icons to display but eh
+
 
 --[[
 	Here's a List of all the available api functions:
@@ -59,6 +62,7 @@ GRAY
 	ModUI.OnMenu(name, descript, uiCallback)
 	ModUI.Slider(label, toolTip, curValue, min, max)
 	ModUI.Button(label, prompt, toolTip)
+	ModUI.Toggle(label, toolTip, curValue)
 	ModUI.Label(label, displayValue, toolTip)
 	ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
 	ModUI.PromptYN(promptMessage, callback(result))
@@ -87,8 +91,8 @@ local optionDescriptions = {
 };
 
 
-local name = "<COL RED>Test</COL> Mod";
-local description = "It's just a test mod. What more do you want?";
+local name = "<COL RED>Rad Example Mod</COL>";
+local description = "It's just a test mod. What more do you want?\nAuthored by: Bolt";
 local modObj = modUI.OnMenu(name, description, function()
 
 	local changed = false;
@@ -126,7 +130,7 @@ local modObj = modUI.OnMenu(name, description, function()
 	
 
 	modUI.Header("Another Header Just Because");
-	modUI.Label("It's a label I guess", labelValue, "Exciting, right?");
+	modUI.Label("<COL YEL>It's a label I Guess</COL>", labelValue, "Exciting, right?");
 	
 	settings.select1, changed = modUI.Options("My Option Set", "Check out my cool options, half-off.",
 		settings.select1, 3, optionNames, optionDescriptions);
@@ -134,6 +138,12 @@ local modObj = modUI.OnMenu(name, description, function()
 	if changed then
 		--do something with the selected index here
 		log.debug("Selected: " .. settings.select1);
+	end
+	
+	settings.toggle1, changed = modUI.Toggle("Toggle me, senpai!", "OwO", settings.toggle1);
+	if changed and settings.toggle1 then
+		modUI.PromptMsg("Pervert...");
+		settings.toggle1 = false;
 	end
 	
 end);
