@@ -61,12 +61,16 @@ GRAY
 	
 	ModUI.OnMenu(name, descript, uiCallback)
 	ModUI.Slider(label, toolTip, curValue, min, max)
+	ModUI.SliderScaled(label, toolTip, curValue, min, max, scale) --scales slider range for more precision, displayed value will be innaccurate
 	ModUI.Button(label, prompt, toolTip)
 	ModUI.Toggle(label, toolTip, curValue)
 	ModUI.Label(label, displayValue, toolTip)
 	ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
 	ModUI.PromptYN(promptMessage, callback(result))
 	ModUI.PromptMsg(promptMessage, callback)
+	
+	Unfortunately theres no FloatSlider because the game physically does not support it as far as I can tell
+	I'd love to be proven wrong though
 ]]--
 
 
@@ -106,8 +110,10 @@ local modObj = modUI.OnMenu(name, description, function()
 		labelValue = (settings.slide1 == 69) and "Nice" or tostring(settings.slide1);
 		
 		if (settings.slide1 == 69) then
+			
 			modUI.PromptMsg("That's Nice.", function()
 				--optional callback
+				modUI.Repaint();
 			end);
 		end
 	end

@@ -113,6 +113,11 @@ function ModUI.Slider(label, toolTip, curValue, min, max)
 	return optData.value, changed;
 end
 
+function ModUI.SliderScaled(label, toolTip, curValue, min, max, scale)
+	local val, changed = ModUI.Slider(label, toolTip, curValue * scale, min * scale, max * scale);
+	return val / scale, changed;
+end
+
 
 function ModUI.Header(label)
 	local mod = _CModUiCurMod;	
