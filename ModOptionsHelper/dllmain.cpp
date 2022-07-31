@@ -1,4 +1,7 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
+
+
+
+
 #include "pch.h"
 
 #include "reframework/API.hpp"
@@ -16,6 +19,7 @@ GUID PointerToGUID(GUID *ptr){
 
 
 void on_ref_lua_state_created(lua_State* l) try {
+
     g_lua = l;
     sol::state_view lua{l};
 
@@ -44,6 +48,7 @@ void on_ref_lua_state_destroyed(lua_State* l) try {
 }
 
 extern "C" __declspec(dllexport) bool reframework_plugin_initialize(const REFrameworkPluginInitializeParam* param) {
+
     if (param->renderer_data->renderer_type != REFRAMEWORK_RENDERER_D3D12) {
         return false;
     }
