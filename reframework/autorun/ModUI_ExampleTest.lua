@@ -58,12 +58,13 @@ GRAY
 
 --[[
 	Here's a List of all the available api functions:
+	all tooltip type things should be optional
 	
 	ModUI.OnMenu(name, descript, uiCallback)
 	ModUI.Slider(label, toolTip, curValue, min, max)
 	ModUI.SliderScaled(label, toolTip, curValue, min, max, scale) --scales slider range for more precision, displayed value will be innaccurate
 	ModUI.Button(label, prompt, toolTip)
-	ModUI.Toggle(label, toolTip, curValue)
+	ModUI.Toggle(label, toolTip, curValue, (optional)togNames[2], (optional)togMsgs[2])
 	ModUI.Label(label, displayValue, toolTip)
 	ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
 	ModUI.PromptYN(promptMessage, callback(result))

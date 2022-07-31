@@ -198,11 +198,14 @@ function ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessa
 end
 
 
-local offOn = {"Off","On"};
+--not entirely sure how i feel about these symbols but its neat
+local offOn = {"✖","√"};
 local offOnMsg = {"Disabled.","Enabled."};
-function ModUI.Toggle(label, toolTip, curValue)
+function ModUI.Toggle(label, toolTip, curValue, togNames, togMsgs)
 	local idx = curValue and 1 or 0;
-	local optSel, changed = ModUI.Options(label, toolTip, idx, 2, offOn, offOnMsg);
+	if not togNames then togNames = offOn; end
+	if not togMsgs then togMsgs = offOnMsg; end
+	local optSel, changed = ModUI.Options(label, toolTip, idx, 2, togNames, togMsgs);
 	return (optSel == 1), changed;
 end
 
