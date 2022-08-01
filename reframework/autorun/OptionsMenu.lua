@@ -462,6 +462,8 @@ local function FirstOpen()
 	mainDataList:add_ref_permanent();	
 	
 	
+	if not _CModUiList then _CModUiList = {}; end
+	
 	for idx, mod in ipairs(_CModUiList) do
 		CreateOptionDataArrays(mod);
 		AddNewModOptionButton(mod);
