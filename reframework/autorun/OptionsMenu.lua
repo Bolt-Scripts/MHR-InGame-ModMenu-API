@@ -195,28 +195,27 @@ local modGuids = {};
 
 
 
---option types:
---0 = select enum
---1 = slider
-
 
 local OptionBaseDataType = sdk.find_type_definition("snow.gui.userdata.GuiOptionData.OptionBaseData");
 local OptionNameField = OptionBaseDataType:get_field("OptionName");
 
 
-local function AddNewTopMenuCategory()
-
+local function AddNewTopMenuCategory(catList)
 	
-	local catList = optionWindow:get_OptionCategoryTypeList();
+	if not catList then
+		catList = optionWindow:get_OptionCategoryTypeList();
+	end
+	
+	
 	local catListCount = catList:get_Count();	
 	
-	
+	--prob shouldnt hardcode this but i dont exactly see them adding new options menu categories any time soon
 	if catListCount > 6 then
 		--mod entry already exists
 		return;
 	end
 	
-	catList:Add(4);
+	catList:Add(SAVE_DATA_IDX);
 end
 
 
@@ -470,6 +469,7 @@ local function FirstOpen()
 	
 	AddCreditsEntry();
 	
+	uiOpen = true;
 end
 
 
@@ -601,8 +601,12 @@ end
 
 
 local function PreInitTopMenu(args)
+
+	log.debug("MOD init");
+
 	SetOptionWindow(sdk.to_managed_object(args[2]));
-	AddNewTopMenuCategory();
+	AddNewTopMenuCategory(sdk.to_managed_object(args[3]));
+	topInitialized = true;
 end
 
 local function PostInitTopMenu(retval)
@@ -610,7 +614,6 @@ local function PostInitTopMenu(retval)
 	
 	if not uiOpen then
 		FirstOpen();
-		uiOpen = true;
 	end
 	
 	return retval;
@@ -641,7 +644,8 @@ sdk.hook(sdk.find_type_definition("snow.gui.StmGuiInput"):get_method("convertIco
 
 local optionWindowType = sdk.find_type_definition("snow.gui.GuiOptionWindow");
 sdk.hook(optionWindowType:get_method("ItemSelectDecideAction()"), PreSelect, PostDef, ignoreJmp);
-sdk.hook(optionWindowType:get_method("initTopMenu()"), PreInitTopMenu, PostInitTopMenu, ignoreJmp);
+sdk.hook(optionWindowType:get_method("setOpenOptionWindow(System.Collections.Generic.List`1<snow.StmOptionDef.StmOptionCategoryType>, snow.gui.GuiOptionWindow._void_OptionFunction, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean)"), PreInitTopMenu, PostDef, ignoreJmp); --what a mouthfull
+sdk.hook(optionWindowType:get_method("initTopMenu"), PreDef, PostInitTopMenu, ignoreJmp);
 sdk.hook(optionWindowType:get_method("changeOptionState"), PreOptionChange, PostDef, ignoreJmp);
 --ItemSelectDecideAction
 --updateSelectValueSelect
