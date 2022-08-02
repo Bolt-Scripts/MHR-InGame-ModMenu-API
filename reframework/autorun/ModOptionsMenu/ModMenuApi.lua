@@ -11,7 +11,9 @@ if not _CModUiList then
 end
 
 
-local ModUI = {};
+local ModUI = {
+	version = 1.2;
+};
 
 local ENUM = 0;
 local SLIDER = 1;
@@ -99,13 +101,14 @@ end
 
 
 
-function ModUI.Slider(label, toolTip, curValue, min, max)
+function ModUI.Slider(label, toolTip, curValue, min, max, isFloat)
 	
 	local mod = _CModUiCurMod;	
 	local optData, new = GetOptionData(mod, SLIDER, label, toolTip, curValue);
 	if new then
 		optData.min = min;
 		optData.max = max;
+		optData.float = isFloat;
 	end
 	
 	local changed = optData.oldValue ~= optData.value;
@@ -115,6 +118,17 @@ function ModUI.Slider(label, toolTip, curValue, min, max)
 	optData.wasChanged = false;
 	optData.oldValue = optData.value;
 	return optData.value, changed;
+end
+
+-- the game legit internally represents float sliders as integers but scaled by 100 and then adds a decimal point...
+-- this is why i initially thought the game didnt even support float sliders
+-- this implementation is just so wack
+function ModUI.FloatSlider(label, toolTip, curValue, min, max)
+
+	if not curValue then curValue = 0; end
+
+	local val, changed = ModUI.Slider(label, toolTip, curValue * 100, min * 100, max * 100, true);
+	return val * 0.01, changed;
 end
 
 function ModUI.SliderScaled(label, toolTip, curValue, min, max, scale)

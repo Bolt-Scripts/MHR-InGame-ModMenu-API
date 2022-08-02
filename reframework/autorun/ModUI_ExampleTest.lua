@@ -10,6 +10,7 @@ local settings;
 local function CreateNewSettings()
 	settings = {
 		slide1 = 42;
+		slide2 = 314;
 		select1 = 0;
 		toggle1 = false;
 	}
@@ -64,6 +65,7 @@ GRAY
 	all tooltip type things should be optional
 	
 	ModUI.OnMenu(name, descript, uiCallback)
+	ModUI.FloatSlider(label, toolTip, curValue, min, max) -- keep in mind this value only has precision to the nearest hundreth
 	ModUI.Slider(label, toolTip, curValue, min, max)
 	ModUI.SliderScaled(label, toolTip, curValue, min, max, scale) --scales slider range for more precision, displayed value will be innaccurate
 	ModUI.Button(label, prompt, toolTip)
@@ -72,9 +74,6 @@ GRAY
 	ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
 	ModUI.PromptYN(promptMessage, callback(result))
 	ModUI.PromptMsg(promptMessage, callback)
-	
-	Unfortunately theres no FloatSlider because the game physically does not support it as far as I can tell
-	I'd love to be proven wrong though
 ]]--
 
 
@@ -137,6 +136,8 @@ local modObj = modUI.OnMenu(name, description, function()
 		--need to repaint if text changes or something so it updates responsively
 		modUI.Repaint();
 	end
+	
+	settings.slide2, changed = modUI.FloatSlider("Precise Slider", "Well, it's only really accurate to 2 decimal places...", settings.slide2, 69, 420);
 	
 
 	modUI.Header("Another Header Just Because");

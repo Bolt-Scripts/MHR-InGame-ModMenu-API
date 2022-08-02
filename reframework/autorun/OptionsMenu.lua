@@ -20,11 +20,11 @@ local WATCHITEM = 3; --no idea what this is for really
 local HEADER = 4;
 local BUTTON = 5; --custom type
 
-local optionBaseDataType = sdk.find_type_definition("snow.gui.userdata.GuiOptionData.OptionBaseData");
-local optionDataType = sdk.find_type_definition("snow.gui.OptionData"); 
+local optionBaseDataType = sdk.find_type_definition("snow.StmGuiOptionData.StmOptionBaseData");
+local optionDataType = sdk.find_type_definition("snow.StmOptionData"); 
 
-local OptionName_OFFSET = optionBaseDataType:get_field("OptionName"):get_offset_from_base();
-local OptionMessage_OFFSET = optionBaseDataType:get_field("OptionSystemMessage"):get_offset_from_base();
+local OptionName_OFFSET = optionBaseDataType:get_field("_OptionName"):get_offset_from_base();
+local OptionMessage_OFFSET = optionBaseDataType:get_field("_OptionSystemMessage"):get_offset_from_base();
 local SAVE_DATA_SUID = 789582228;
 
 
@@ -129,6 +129,7 @@ local defaultSelMsgGuidArr;
 
 local guiManager;
 local optionWindow;
+local messageWindow;
 local mainScrollList;
 local subHeadingTxt;
 local unifier;
@@ -149,6 +150,7 @@ local function SetOptionWindow(optWin)
 		guiManager = sdk.get_managed_singleton("snow.gui.GuiManager");	
 		if not guiManager then return end
 		optionWindow = guiManager:get_refGuiOptionWindow();
+		messageWindow = guiManager:get_refGuiCommonMessageWindow();
 	end
 	 
 	
@@ -262,43 +264,49 @@ local function SetOptStrings(opt)
 	SetBaseDataOptionName(opt.baseData, opt.name);
 	SetBaseDataOptionMessage(opt.baseData, opt.message);
 	
-	if opt.baseData.OptionItemName then
-		opt.baseData.OptionItemName:force_release();
+	if opt.baseData._OptionItemName then
+		opt.baseData._OptionItemName:force_release();
 	end
 
-	if opt.baseData.OptionItemSelectMessage then
-		opt.baseData.OptionItemSelectMessage:force_release();
+	if opt.baseData._OptionItemSelectMessage then
+		opt.baseData._OptionItemSelectMessage:force_release();
 	end
 	
 	--for some reason the game will crash if its a header type with empty OptionItemName[]
 	--even though its a dang header that doesnt need them jeez
 	if opt.enumNames then
-		opt.baseData.OptionItemName = CreateGuidArray(opt.enumCount, opt.enumNames);
+		opt.baseData._OptionItemName = CreateGuidArray(opt.enumCount, opt.enumNames);
 	else
-		opt.baseData.OptionItemName = defaultSelMsgGuidArr;
+		opt.baseData._OptionItemName = defaultSelMsgGuidArr;
 	end
 	
 	if opt.enumMessages then
-		opt.baseData.OptionItemSelectMessage = CreateGuidArray(opt.enumCount, opt.enumMessages);
+		opt.baseData._OptionItemSelectMessage = CreateGuidArray(opt.enumCount, opt.enumMessages);
 	else
-		opt.baseData.OptionItemSelectMessage = defaultSelMsgGuidArr;
+		opt.baseData._OptionItemSelectMessage = defaultSelMsgGuidArr;
 	end
 end
 
 local function GetNewBaseData(opt)
 	
 	local unifiedData = sdk.create_instance("snow.StmUnifiedOptionBaseData", true):add_ref();
-	local newBaseData = sdk.create_instance("snow.gui.userdata.GuiOptionData.OptionBaseData"):add_ref();
+	local newBaseData = sdk.create_instance("snow.StmGuiOptionData.StmOptionBaseData"):add_ref();
 	
 	if opt then
-		newBaseData.PartsType = opt.type;
-		newBaseData.SliderFloatMin = opt.min;
-		newBaseData.SliderFloatMax = opt.max;
+	
+		if opt.float then
+			--setting this to 10 is mouse sensitivity and will make it appear as a float
+			newBaseData._OptionType = 10;
+		end
+		
+		newBaseData._PartsType = opt.type;
+		newBaseData._SliderFloatMin = opt.min;
+		newBaseData._SliderFloatMax = opt.max;
 		opt.baseData = newBaseData;
 		SetOptStrings(opt);
 	end
 	
-	unifiedData:call(".ctor", 1, newBaseData, nil);
+	unifiedData:call(".ctor", 0, nil, newBaseData);
 	
 	return unifiedData, newBaseData;	
 end
@@ -306,10 +314,10 @@ end
 local function GetNewData(opt)
 
 	local unifiedData = sdk.create_instance("snow.StmUnifiedOptionData", true):add_ref();
-	local newData = sdk.create_instance("snow.gui.OptionData"):add_ref();
+	local newData = sdk.create_instance("snow.StmOptionData", true):add_ref();
 	
 	if opt then		
-		newData._DataType = opt.type;
+		newData._PartsType = opt.type;
 		newData._MinSliderValue = opt.min;
 		newData._MaxSliderValue = opt.max;
 		newData._SelectNum = opt.max - 1;
@@ -321,7 +329,7 @@ local function GetNewData(opt)
 		opt.data = newData;
 	end
 	
-	unifiedData:call(".ctor", 1, newData, nil);
+	unifiedData:call(".ctor", 0, nil, newData);
 	return unifiedData, newData;
 end
 
@@ -337,8 +345,8 @@ local function AddNewModOptionButton(mod)
 	SetBaseDataOptionMessage(newBaseData, mod.description);
 	
 	newData._SelectNum = 0;
-	newBaseData.OptionItemName = OpenMenu_ARR;
-	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
+	newBaseData._OptionItemName = OpenMenu_ARR;
+	newBaseData._OptionItemSelectMessage = newBaseData._OptionItemName;
 	
 	modBaseDataList = AppendArray(modBaseDataList, sdk.typeof("snow.StmUnifiedOptionBaseData"), unifiedBaseData);
 	modDataList = AppendArray(modDataList, sdk.typeof("snow.StmUnifiedOptionData"), unifiedData);
@@ -354,12 +362,12 @@ local function AddCreditsEntry()
 	SetBaseDataOptionName(newBaseData, "Created By: <COL RED>Bolt</COL>");
 	SetBaseDataOptionMessage(newBaseData, "Hi, it's <COL YEL>me.</COL>\n\nI made the mod menu ツ");
 	
-	newBaseData.PartsType = WATCHITEM;
-	newData._DataType = WATCHITEM;
+	newBaseData._PartsType = WATCHITEM;
+	newData._PartsType = WATCHITEM;
 	
 	newData._SelectNum = 0;
-	newBaseData.OptionItemName = defaultSelMsgGuidArr;
-	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
+	newBaseData._OptionItemName = defaultSelMsgGuidArr;
+	newBaseData._OptionItemSelectMessage = newBaseData._OptionItemName;
 	
 	modBaseDataList = AppendArray(modBaseDataList, sdk.typeof("snow.StmUnifiedOptionBaseData"), unifiedBaseData);
 	modDataList = AppendArray(modDataList, sdk.typeof("snow.StmUnifiedOptionData"), unifiedData);
@@ -375,8 +383,8 @@ local function GetBackButtonData()
 	
 	newData._SelectNum = 1;
 	newData._SelectValue = 1;
-	newBaseData.OptionItemName = Go_ARR;
-	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
+	newBaseData._OptionItemName = Go_ARR;
+	newBaseData._OptionItemSelectMessage = newBaseData._OptionItemName;
 	
 	return unifiedBaseData, unifiedData;
 end
@@ -415,14 +423,20 @@ local function CreateOptionDataArrays(mod)
 	
 	mod.unifiedBaseArray = baseDataArray;
 	mod.unifiedArray = dataArray;
-	mod.backBtnData = backData._OptionData;
+	mod.backBtnData = backData._StmOptionData;
 end
 
 
+local scrollMenuObj = sdk.create_instance("snow.gui.SnowGuiCommonUtility.MenuScrollCursor", true):add_ref();
+scrollMenuObj:set_dispMax(10);
 local function SwapOptionArray(toBaseArray, toDataArray)
+	
+	scrollMenuObj:set_itemMax(toBaseArray:get_size());
+	optionWindow:updateOptionCursor(scrollMenuObj, true);
+	
 	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
 	optionWindow:setOpenOption(SAVE_DATA_IDX);
-	optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
+	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
 end
 
 local needsRepaint = false;
@@ -590,9 +604,12 @@ local function PreSelect(args)
 	
 	
 	_CModUiCurMod = selectedMod;
-	modMenuIsOpen = true;
+	modMenuIsOpen = true;	
 	
 	SwapOptionArray(selectedMod.unifiedBaseArray, selectedMod.unifiedArray);
+	
+	--this prevents the message text showing the save data message if the cursor hovers a header after the swap operation, 40 is options segment
+	messageWindow:setSystemMessageText("", 40);
 	
 	return sdk.PreHookResult.SKIP_ORIGINAL; 
 end
@@ -606,9 +623,9 @@ end
 
 local function PreInitTopMenu(args)
 
-	log.debug("MOD init");
+	log.debug("Mod Menu Init");
 
-	SetOptionWindow(sdk.to_managed_object(args[2]));
+	SetOptionWindow();
 	AddNewTopMenuCategory(sdk.to_managed_object(args[3]));
 	topInitialized = true;
 end
@@ -640,7 +657,7 @@ local function PreOptionChange(args)
 end
 
 
-local function PreSwitchState(args)
+local function PreSwitchState(args)	
 	
 	--2 is in the state of selecting settings
 	if modMenuIsOpen and optionWindow._State == 1 then
@@ -648,11 +665,10 @@ local function PreSwitchState(args)
 		optionWindow._State = 2;
 		modMenuIsOpen = false;
 		SwapOptionArray(modBaseDataList, modDataList);
-		--SetUnifiedOptionArrays(SAVE_DATA_IDX, modBaseDataList, modDataList);
-		log.debug("STATE: " .. optionWindow._State);
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 end
+
 
 
 
@@ -669,7 +685,6 @@ sdk.hook(optionWindowType:get_method("setOpenOptionWindow(System.Collections.Gen
 sdk.hook(optionWindowType:get_method("initTopMenu"), PreDef, PostInitTopMenu, ignoreJmp);
 sdk.hook(optionWindowType:get_method("changeOptionState"), PreOptionChange, PostDef, ignoreJmp);
 sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.List`1<snow.StmUnifiedOptionData>, System.Int32)"), PreSwitchState, PostDef, ignoreJmp);
---snow.gui.GuiOptionWindow.setIsEditValue(System.Boolean)
 --ItemSelectDecideAction
 --updateSelectValueSelect
 --updateCategorySelect()
@@ -706,12 +721,6 @@ local function Options(mod)
 		end
 		
 		mod.guiCallback();
-		
-		for key, opt in pairs(mod.optionsList) do
-			log.debug(opt.desiredValue);
-			opt.wasChanged = false;
-		end
-		
 		
 		needsRepaint = true;
 		wasReset = true;
