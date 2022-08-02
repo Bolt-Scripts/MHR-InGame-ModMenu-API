@@ -430,27 +430,43 @@ local function CreateOptionDataArrays(mod)
 end
 
 
+local desiredScrollIdx = -1;
 local scrollMenuObj = sdk.create_instance("snow.gui.SnowGuiCommonUtility.MenuScrollCursor", true):add_ref();
-scrollMenuObj:set_dispMax(10);
+scrollMenuObj:call(".ctor", 10, 10);
 local function SwapOptionArray(toBaseArray, toDataArray, maintainCursorPos)
 
 	local arrSize = toBaseArray:get_size();
+	scrollMenuObj:setMenuParam((arrSize >= 10 and 10 or arrSize), arrSize);
 
 	if maintainCursorPos then
 		local idx = GetSelectedModIndex();
-		scrollMenuObj:set_cursorIndex((idx <= arrSize and idx or arrSize) - 1);
+		desiredScrollIdx = (idx <= arrSize and idx or arrSize) - 1;
 	else
-		scrollMenuObj:set_cursorIndex(0);
+		desiredScrollIdx = 0;
 	end
-		
-	
-	scrollMenuObj:set_itemMax(arrSize);
-	optionWindow:updateOptionCursor(scrollMenuObj, true);
-	
+
 	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
 	optionWindow:setOpenOption(SAVE_DATA_IDX);
 	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
 end
+
+local function UpdateSelectedIdx()
+
+	if desiredScrollIdx < 0 then return end
+
+	scrollMenuObj:set_index(desiredScrollIdx);
+	scrollMenuObj:set_cursorIndex(desiredScrollIdx);
+	
+	optionWindow:updateOptionCursor(scrollMenuObj, true);
+	optionWindow:updateOptionCursor(scrollMenuObj, true);
+	
+	--it was so scuffed to figure this out that the literal heckin "updateOptionCursor" function DOESNT ACTUALLY UPDATE THE CURSOR VALUE
+	--so have to manually change this as well
+	optionWindow:get_OptionMenuListCursor():setIndex(desiredScrollIdx, false);
+	
+	desiredScrollIdx = -1;
+end
+
 
 local needsRepaint = false;
 function _CModUiRepaint()
@@ -504,14 +520,6 @@ local function FirstOpen()
 end
 
 
---try to get it once on init just to make sure it gets filled if scripts are reset;
-SetOptionWindow();
-if optionWindow then
-	FirstOpen();
-	uiOpen = true;
-end
-
-
 
 
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -554,7 +562,7 @@ re.msg(PtrToGuidTest(gPtr));
 
 local suidArg;
 local function PreMsg(args)
-	--use custom plugin to grab first 32 bits of the guid from the args ptr which is plenty for what we need
+	--use custom plugin to grab first 32 bits of the guid from the args ptr which is plenty for what we need	
 	suidArg = PtrToGuidTest(args[2]);
 end
 
@@ -655,6 +663,7 @@ end
 
 
 local function PreOptionChange(args)
+	
 	if GetIsModsTabSelected() then
 		if displayedList ~= modBaseDataList and (not modMenuIsOpen) then
 			
@@ -667,6 +676,7 @@ local function PreOptionChange(args)
 		modMenuIsOpen = false;
 		SetUnifiedOptionArrays(SAVE_DATA_IDX, mainBaseDataList, mainDataList);
 	end
+	
 end
 
 
@@ -682,8 +692,10 @@ local function PreSwitchState(args)
 	end
 end
 
-
-
+local function PostSwitchState(retval)
+	UpdateSelectedIdx();
+	return retval;
+end
 
 
 local ignoreJmp = true;
@@ -712,6 +724,11 @@ sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.L
 local function UpdateOpt(opt)
 	SetOptStrings(opt);
 	opt.needsUpdate = false;
+	
+	--go ahead and repaint if we arent selecting anything
+	if optionWindow._State <= 2 then
+		needsRepaint = true;
+	end
 end
 
 local function RegenModOpts(mod)
@@ -821,6 +838,20 @@ end
 
 local function PreOptWindowUpdate(args)
 
+	if not optionWindow then
+		SetOptionWindow();
+	end
+
+	if not uiOpen then
+		FirstOpen();
+		uiOpen = true;
+		
+		if GetIsModsTabSelected() then
+			SwapOptionArray(modBaseDataList, modDataList, true);
+			return sdk.PreHookResult.SKIP_ORIGINAL;
+		end
+	end
+
 	if _CModUiPromptCoRo then
 		if not coroutine.resume(_CModUiPromptCoRo) then
 			_CModUiPromptCoRo = nil;
@@ -840,9 +871,13 @@ local function PreOptWindowUpdate(args)
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 
+	UpdateSelectedIdx();
+
+	
 	if modMenuIsOpen then
 		return Options(mod);
 	end
+	
 end
 
 

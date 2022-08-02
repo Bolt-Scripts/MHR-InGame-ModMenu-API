@@ -11,7 +11,7 @@ local function CreateNewSettings()
 	settings = {
 		slide1 = 42;
 		slide2 = 314;
-		select1 = 0;
+		select1 = 1;
 		toggle1 = false;
 		hide = false;
 	}
@@ -26,6 +26,7 @@ local function LoadSettings()
 	end
 end
 LoadSettings();
+settings.select1 = 1;
 
 --no idea how this works but google to the rescue
 --can use this to check if the api is available and do an alternative to avoid complaints from users
@@ -75,13 +76,12 @@ GRAY
 	all tooltip type things should be optional
 	
 	ModUI.OnMenu(name, descript, uiCallback)
-	ModUI.FloatSlider(label, toolTip, curValue, min, max) -- keep in mind this value only has precision to the nearest hundreth
-	ModUI.Slider(label, toolTip, curValue, min, max)
-	ModUI.SliderScaled(label, toolTip, curValue, min, max, scale) --scales slider range for more precision, displayed value will be innaccurate
-	ModUI.Button(label, prompt, toolTip, isHighlight)
-	ModUI.Toggle(label, toolTip, curValue, (optional)togNames[2], (optional)togMsgs[2])
+	ModUI.FloatSlider(label, curValue, min, max, toolTip) -- keep in mind this value only has precision to the nearest hundreth
+	ModUI.Slider(label, curValue, min, max, toolTip)
+	ModUI.Button(label, prompt, isHighlight, toolTip)
+	ModUI.Toggle(label, curValue, toolTip, (optional)togNames[2], (optional)togMsgs[2])
 	ModUI.Label(label, displayValue, toolTip)
-	ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
+	ModUI.Options(label, curValue, optionNames, optionMessages, toolTip)
 	ModUI.PromptYN(promptMessage, callback(result))
 	ModUI.PromptMsg(promptMessage, callback)
 ]]--
@@ -115,7 +115,7 @@ local modObj = modUI.OnMenu(name, description, function()
 	local changed = false;
 	
 	modUI.Header("Wow Custom Mod Settings This Is Crazy");
-	settings.slide1, changed = modUI.Slider("Nice Slider", "Weeeee.", settings.slide1, 0, 69);
+	changed, settings.slide1 = modUI.Slider("Nice Slider", settings.slide1, 0, 69, "Weeeee.");
 	
 	if changed then
 		--do something with slider value here
@@ -126,16 +126,17 @@ local modObj = modUI.OnMenu(name, description, function()
 			
 			modUI.PromptMsg("That's Nice.", function()
 				--optional callback
+				modUI.ForceDeselect();
 				modUI.Repaint();
 			end);
 		end
 	end
 	
-	if modUI.Button("This is a Button", buttonTxt, "It's just a button, really...") then
+	if modUI.Button("This is a Button", buttonTxt, false, "It's just a button, really...") then
 		
 		if buttonTxt == "Cool it." then
 			modUI.PromptYN("Did you mean to do that?", function(result)
-				buttonTxt = (result and "Rude." or "It's Okay.");
+				buttonTxt = (result and "Rude." or "It's Okay.");							
 				modUI.Repaint();
 			end);
 		else
@@ -148,10 +149,10 @@ local modObj = modUI.OnMenu(name, description, function()
 	end
 	
 	if modUI.version >= 1.2 then
-		settings.slide2, changed = modUI.FloatSlider("Precise Slider", "Well, it's only really accurate to 2 decimal places...", settings.slide2, 69, 420);
+		changed, settings.slide2 = modUI.FloatSlider("Precise Slider", settings.slide2, 69, 420, "Well, it's only really accurate to 2 decimal places...");
+		
 	
-	
-		if modUI.Button("[Hide Section 2]", "", "Crazy.", true) then
+		if modUI.Button("[Hide Section 2]", "", true, "Crazy.") then
 			settings.hide = not settings.hide;
 		end	
 	end
@@ -161,18 +162,19 @@ local modObj = modUI.OnMenu(name, description, function()
 		modUI.Header("Another Header Just Because");
 		modUI.Label("<COL YEL>It's a label I Guess</COL>", labelValue, "Exciting, right?");
 		
-		settings.select1, changed = modUI.Options("My Option Set", "Check out my cool options, half-off.",
-			settings.select1, 3, optionNames, optionDescriptions);
+		changed, settings.select1  = modUI.Options("My Option Set", settings.select1, optionNames, optionDescriptions,
+			"Check out my cool options, half-off.");
 	
 		if changed then
 			--do something with the selected index here
 			log.debug("Selected: " .. settings.select1);
 		end
 		
-		settings.toggle1, changed = modUI.Toggle("Toggle me, senpai!", "OwO", settings.toggle1);
+		changed, settings.toggle1 = modUI.Toggle("Toggle me, senpai!", settings.toggle1, "OwO");
 		if changed and settings.toggle1 then
+			modUI.ForceDeselect();
 			modUI.PromptMsg("Pervert...");
-			settings.toggle1 = false;
+			settings.toggle1 = false;			
 		end
 	end
 	

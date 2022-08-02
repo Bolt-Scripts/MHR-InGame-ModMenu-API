@@ -12,7 +12,7 @@ end
 
 
 local ModUI = {
-	version = 1.2;
+	version = 1.3;
 };
 
 local ENUM = 0;
@@ -55,6 +55,13 @@ function ModUI.Repaint()
 	_CModUiRepaint();
 end
 
+function ModUI.ForceDeselect()
+	local guiManager = sdk.get_managed_singleton("snow.gui.GuiManager");	
+	local optionWindow = guiManager:get_refGuiOptionWindow();
+	
+	optionWindow._State = 2;
+	optionWindow:setIsEditValue(false);
+end
 
 local function CheckLabel(opt, toolTip)
 
@@ -106,7 +113,7 @@ end
 
 
 
-function ModUI.Slider(label, toolTip, curValue, min, max, isFloat)
+function ModUI.Slider(label, curValue, min, max, toolTip, isFloat)
 	
 	local mod = _CModUiCurMod;	
 	local optData, new = GetOptionData(mod, SLIDER, label, toolTip, curValue);
@@ -122,33 +129,28 @@ function ModUI.Slider(label, toolTip, curValue, min, max, isFloat)
 	end
 	optData.wasChanged = false;
 	optData.oldValue = optData.value;
-	return optData.value, changed;
+	return changed, optData.value;
 end
 
 -- the game legit internally represents float sliders as integers but scaled by 100 and then adds a decimal point...
 -- this is why i initially thought the game didnt even support float sliders
 -- this implementation is just so wack
-function ModUI.FloatSlider(label, toolTip, curValue, min, max)
+function ModUI.FloatSlider(label, curValue, min, max, toolTip)
 
 	if not curValue then curValue = 0; end
 
-	local val, changed = ModUI.Slider(label, toolTip, curValue * 100, min * 100, max * 100, true);
-	return val * 0.01, changed;
-end
-
-function ModUI.SliderScaled(label, toolTip, curValue, min, max, scale)
-	local val, changed = ModUI.Slider(label, toolTip, curValue * scale, min * scale, max * scale);
-	return val / scale, changed;
+	local changed, val = ModUI.Slider(label, curValue * 100, min * 100, max * 100, toolTip, true);
+	return changed, val * 0.01;
 end
 
 
 function ModUI.Header(label)
-	local mod = _CModUiCurMod;	
-	local optData = GetOptionData(mod, HEADER, label);	
+	local mod = _CModUiCurMod;
+	local optData = GetOptionData(mod, HEADER, label);
 end
 
 
-function ModUI.Button(label, prompt, toolTip, isHighlight)
+function ModUI.Button(label, prompt, isHighlight, toolTip)
 	
 	prompt = prompt or "<COL YEL>Go</COL>";	
 
@@ -166,7 +168,7 @@ function ModUI.Button(label, prompt, toolTip, isHighlight)
 		end
 	end
 	
-	if optData.prompt ~= prompt then	
+	if optData.prompt ~= prompt then
 		optData.prompt = prompt;
 		optData.enumNames = {prompt};
 		optData.needsUpdate = true;
@@ -187,8 +189,8 @@ function ModUI.Label(label, displayValue, toolTip)
 	local opt, new = GetOptionData(mod, WATCHITEM, label, toolTip);
 
 	if new then
-		opt.enumNames = {displayValue};
 		opt.prompt = displayValue;
+		opt.enumNames = {displayValue};
 	end
 	
 	if opt.prompt ~= displayValue then
@@ -199,12 +201,18 @@ function ModUI.Label(label, displayValue, toolTip)
 end
 
 
-function ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
+function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip)
 
 	local mod = _CModUiCurMod;	
-	local opt, new = GetOptionData(mod, ENUM, label, toolTip, curValue);
+	local opt, new = GetOptionData(mod, ENUM, label, toolTip, curValue - 1);
 
 	if new then
+	
+		local count = 0;
+		for i, t in ipairs(optionNames) do
+			count = count + 1;
+		end
+	
 		opt.enumCount = count;
 		opt.max = count;
 		opt.enumNames = optionNames;
@@ -219,23 +227,24 @@ function ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessa
 	
 	local changed = opt.oldValue ~= opt.value;
 	if not opt.wasChanged then
-		opt.desiredValue = curValue;
+		opt.desiredValue = curValue - 1;
 	end
 	opt.wasChanged = false;
 	opt.oldValue = opt.value;
-	return opt.value, changed;
+	return changed, opt.value + 1;
 end
 
 
 --not entirely sure how i feel about these symbols but its neat
 local offOn = {"✖","√"};
 local offOnMsg = {"Disabled.","Enabled."};
-function ModUI.Toggle(label, toolTip, curValue, togNames, togMsgs)
-	local idx = curValue and 1 or 0;
+function ModUI.Toggle(label, curValue, toolTip, togNames, togMsgs)
+	
+	local idx = curValue and 2 or 1;
 	if not togNames then togNames = offOn; end
 	if not togMsgs then togMsgs = offOnMsg; end
-	local optSel, changed = ModUI.Options(label, toolTip, idx, 2, togNames, togMsgs);
-	return (optSel == 1), changed;
+	local changed, optSel = ModUI.Options(label, idx, togNames, togMsgs, toolTip);
+	return changed, (optSel == 2);
 end
 
 
@@ -256,7 +265,7 @@ function ModUI.PromptMsg(promptMessage, callback)
       end		
 		
 		if callback then callback(); end
-	end);	
+	end);
 end
 
 function ModUI.PromptYN(promptMessage, callback)
