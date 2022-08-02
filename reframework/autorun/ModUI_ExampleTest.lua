@@ -13,9 +13,19 @@ local function CreateNewSettings()
 		slide2 = 314;
 		select1 = 0;
 		toggle1 = false;
+		hide = false;
 	}
 end
 CreateNewSettings();
+
+
+local function LoadSettings()
+	local loadedSettings = json.load_file("TestModSettings.json");
+	if loadedSettings then
+		settings = loadedSettings;
+	end
+end
+LoadSettings();
 
 --no idea how this works but google to the rescue
 --can use this to check if the api is available and do an alternative to avoid complaints from users
@@ -68,7 +78,7 @@ GRAY
 	ModUI.FloatSlider(label, toolTip, curValue, min, max) -- keep in mind this value only has precision to the nearest hundreth
 	ModUI.Slider(label, toolTip, curValue, min, max)
 	ModUI.SliderScaled(label, toolTip, curValue, min, max, scale) --scales slider range for more precision, displayed value will be innaccurate
-	ModUI.Button(label, prompt, toolTip)
+	ModUI.Button(label, prompt, toolTip, isHighlight)
 	ModUI.Toggle(label, toolTip, curValue, (optional)togNames[2], (optional)togMsgs[2])
 	ModUI.Label(label, displayValue, toolTip)
 	ModUI.Options(label, toolTip, curValue, count, optionNames, optionMessages)
@@ -137,24 +147,31 @@ local modObj = modUI.OnMenu(name, description, function()
 		modUI.Repaint();
 	end
 	
+	
 	settings.slide2, changed = modUI.FloatSlider("Precise Slider", "Well, it's only really accurate to 2 decimal places...", settings.slide2, 69, 420);
 	
-
-	modUI.Header("Another Header Just Because");
-	modUI.Label("<COL YEL>It's a label I Guess</COL>", labelValue, "Exciting, right?");
-	
-	settings.select1, changed = modUI.Options("My Option Set", "Check out my cool options, half-off.",
-		settings.select1, 3, optionNames, optionDescriptions);
-
-	if changed then
-		--do something with the selected index here
-		log.debug("Selected: " .. settings.select1);
+	if modUI.Button("[Hide Section 2]", "", "Crazy.", true) then
+		settings.hide = not settings.hide;
 	end
 	
-	settings.toggle1, changed = modUI.Toggle("Toggle me, senpai!", "OwO", settings.toggle1);
-	if changed and settings.toggle1 then
-		modUI.PromptMsg("Pervert...");
-		settings.toggle1 = false;
+	
+	if not settings.hide then
+		modUI.Header("Another Header Just Because");
+		modUI.Label("<COL YEL>It's a label I Guess</COL>", labelValue, "Exciting, right?");
+		
+		settings.select1, changed = modUI.Options("My Option Set", "Check out my cool options, half-off.",
+			settings.select1, 3, optionNames, optionDescriptions);
+	
+		if changed then
+			--do something with the selected index here
+			log.debug("Selected: " .. settings.select1);
+		end
+		
+		settings.toggle1, changed = modUI.Toggle("Toggle me, senpai!", "OwO", settings.toggle1);
+		if changed and settings.toggle1 then
+			modUI.PromptMsg("Pervert...");
+			settings.toggle1 = false;
+		end
 	end
 	
 end);
@@ -175,15 +192,6 @@ local function SaveSettings()
 	json.dump_file("TestModSettings.json", settings);
 end
 
-local function LoadSettings()
-	local loadedSettings = json.load_file("TestModSettings.json");
-	if loadedSettings then
-		settings = loadedSettings;
-	end
-end
-
-
-LoadSettings();
 
 re.on_config_save(function()
 	SaveSettings();

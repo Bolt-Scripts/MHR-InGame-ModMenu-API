@@ -402,6 +402,9 @@ end
 
 local function CreateOptionDataArrays(mod)
 
+	if mod.unifiedBaseArray then mod.unifiedBaseArray:force_release(); end
+	if mod.unifiedArray then mod.unifiedArray:force_release(); end
+
 	local count = mod.optionsCount + 1;
 	local baseDataArray = sdk.create_managed_array(sdk.typeof("snow.StmUnifiedOptionBaseData"), count):add_ref_permanent();
 	local dataArray = sdk.create_managed_array(sdk.typeof("snow.StmUnifiedOptionData"), count):add_ref_permanent();
@@ -429,9 +432,19 @@ end
 
 local scrollMenuObj = sdk.create_instance("snow.gui.SnowGuiCommonUtility.MenuScrollCursor", true):add_ref();
 scrollMenuObj:set_dispMax(10);
-local function SwapOptionArray(toBaseArray, toDataArray)
+local function SwapOptionArray(toBaseArray, toDataArray, maintainCursorPos)
+
+	local arrSize = toBaseArray:get_size();
+
+	if maintainCursorPos then
+		local idx = GetSelectedModIndex();
+		scrollMenuObj:set_cursorIndex((idx <= arrSize and idx or arrSize) - 1);
+	else
+		scrollMenuObj:set_cursorIndex(0);
+	end
+		
 	
-	scrollMenuObj:set_itemMax(toBaseArray:get_size());
+	scrollMenuObj:set_itemMax(arrSize);
 	optionWindow:updateOptionCursor(scrollMenuObj, true);
 	
 	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
@@ -701,8 +714,25 @@ local function UpdateOpt(opt)
 	opt.needsUpdate = false;
 end
 
+local function RegenModOpts(mod)
+
+	mod.optionsOrdered = {};
+	mod.curOptIdx = 0;
+	mod.guiCallback();
+	mod.optionsCount = mod.curOptIdx;
+	mod.regenOptions = false;
+	
+	CreateOptionDataArrays(mod);
+	SwapOptionArray(mod.unifiedBaseArray, mod.unifiedArray, true);
+end
+
 local function Options(mod)
 	
+	
+	if mod.regenOptions then
+		RegenModOpts(mod);
+		return sdk.PreHookResult.SKIP_ORIGINAL;
+	end
 	
 	local wasReset = false;
 	
@@ -716,7 +746,7 @@ local function Options(mod)
 			_CModUiCurMod.OnResetAllSettings();
 		end
 		
-		for key, opt in pairs(mod.optionsList) do
+		for idx, opt in ipairs(mod.optionsOrdered) do
 			opt.wasChanged = false;
 		end
 		
@@ -727,7 +757,7 @@ local function Options(mod)
 	end
 	
 	
-	for key, opt in pairs(mod.optionsList) do
+	for idx, opt in ipairs(mod.optionsOrdered) do
 	
 		if opt.needsUpdate then
 			UpdateOpt(opt);
@@ -780,7 +810,12 @@ local function Options(mod)
 		
 	end
 	
+	mod.curOptIdx = 0;
 	mod.guiCallback();
+	
+	if mod.curOptIdx ~= mod.optionsCount then
+		mod.regenOptions = true;
+	end
 end
 
 
@@ -801,12 +836,12 @@ local function PreOptWindowUpdate(args)
 
 	if needsRepaint then
 		needsRepaint = false;
-		SwapOptionArray(mod.unifiedBaseArray, mod.unifiedArray);
+		SwapOptionArray(mod.unifiedBaseArray, mod.unifiedArray, true);
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 
 	if modMenuIsOpen then
-		Options(mod);
+		return Options(mod);
 	end
 end
 

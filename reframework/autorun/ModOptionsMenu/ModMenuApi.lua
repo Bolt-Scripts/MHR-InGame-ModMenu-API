@@ -32,11 +32,10 @@ function ModUI.OnMenu(name, descript, uiCallback)
 		modName = name;
 		modNameSuid = 1;
 		description = descript;
-		optionsList = {};
 		optionsOrdered = {};
 		guiCallback = uiCallback;
 		created = false;
-		optionsCount = 0;
+		curOptIdx = 0;
 	};
 	
 	table.insert(_CModUiList, mod);
@@ -46,16 +45,15 @@ function ModUI.OnMenu(name, descript, uiCallback)
 	_CModUiCurMod = mod;
 	uiCallback();
 	
+	mod.regenOptions = false;
+	mod.optionsCount = mod.curOptIdx;
+	
 	return mod;
 end
 
 function ModUI.Repaint()
 	_CModUiRepaint();
 end
-
-
-
-
 
 
 local function CheckLabel(opt, toolTip)
@@ -69,11 +67,13 @@ end
 
 local function GetOptionData(mod, optType, label, toolTip, defaultValue)
 
-	local data = mod.optionsList[label];
+	mod.curOptIdx = mod.curOptIdx + 1;
+	local data = mod.optionsOrdered[mod.curOptIdx];
+	
 	if not data then
 	
 		if not defaultValue then defaultValue = 0; end
-				
+		
 		data = {
 			parentMod = mod;
 			type = optType;
@@ -86,13 +86,18 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue)
 			max = 0;
 			enumCount = 1;
 			needsUpdate = false;
+			optionIdx = mod.curOptIdx;
 		};
 		
-		mod.optionsCount = mod.optionsCount + 1;
-		mod.optionsOrdered[mod.optionsCount] = data;
-		mod.optionsList[label] = data;
+		mod.regenOptions = true;
+		mod.optionsOrdered[mod.curOptIdx] = data;
+		
 		return data, true;
 	else
+	
+		if mod.curOptIdx ~= data.optionIdx then
+			mod.regenOptions = true;
+		end
 		
 		CheckLabel(data, toolTip);
 		return data, false;
@@ -143,7 +148,9 @@ function ModUI.Header(label)
 end
 
 
-function ModUI.Button(label, prompt, toolTip)
+function ModUI.Button(label, prompt, toolTip, isHighlight)
+	
+	prompt = prompt or "<COL YEL>Go</COL>";	
 
 	local mod = _CModUiCurMod;	
 	local optData, new = GetOptionData(mod, ENUM, label, toolTip);
@@ -153,6 +160,10 @@ function ModUI.Button(label, prompt, toolTip)
 		optData.value = false;
 		optData.enumNames = {prompt};
 		optData.prompt = prompt;
+		
+		if isHighlight then
+			optData.name = "<COL YEL>" .. optData.name .. "</COL>";
+		end
 	end
 	
 	if optData.prompt ~= prompt then	
