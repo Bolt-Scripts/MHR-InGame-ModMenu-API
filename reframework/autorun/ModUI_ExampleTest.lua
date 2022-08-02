@@ -149,10 +149,11 @@ local modObj = modUI.OnMenu(name, description, function()
 	
 	if modUI.version >= 1.2 then
 		settings.slide2, changed = modUI.FloatSlider("Precise Slider", "Well, it's only really accurate to 2 decimal places...", settings.slide2, 69, 420);
-	end
 	
-	if modUI.Button("[Hide Section 2]", "", "Crazy.", true) then
-		settings.hide = not settings.hide;
+	
+		if modUI.Button("[Hide Section 2]", "", "Crazy.", true) then
+			settings.hide = not settings.hide;
+		end	
 	end
 	
 	
