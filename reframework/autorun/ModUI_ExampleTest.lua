@@ -6,12 +6,15 @@
 
 local apiPackageName = "ModOptionsMenu.ModMenuApi";
 
-local settings = {
-	slide1 = 42;
-	select1 = 0;
-	toggle1 = false;
-}
-
+local settings;
+local function CreateNewSettings()
+	settings = {
+		slide1 = 42;
+		select1 = 0;
+		toggle1 = false;
+	}
+end
+CreateNewSettings();
 
 --no idea how this works but google to the rescue
 --can use this to check if the api is available and do an alternative to avoid complaints from users
@@ -156,6 +159,10 @@ local modObj = modUI.OnMenu(name, description, function()
 end);
 
 
+--add a callback here in order to hook when the user resets all settings
+modObj.OnResetAllSettings = (function()	
+	CreateNewSettings();
+end)
 
 
 

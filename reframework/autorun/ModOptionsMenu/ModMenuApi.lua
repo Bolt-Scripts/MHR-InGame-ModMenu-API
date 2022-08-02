@@ -32,7 +32,7 @@ function ModUI.OnMenu(name, descript, uiCallback)
 		description = descript;
 		optionsList = {};
 		optionsOrdered = {};
-		callback = uiCallback;
+		guiCallback = uiCallback;
 		created = false;
 		optionsCount = 0;
 	};
@@ -50,6 +50,10 @@ end
 function ModUI.Repaint()
 	_CModUiRepaint();
 end
+
+
+
+
 
 
 local function CheckLabel(opt, toolTip)

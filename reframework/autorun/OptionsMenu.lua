@@ -105,7 +105,7 @@ local Back_SUID = StringToSuid("Back To Mod List");
 local Null_SUID = StringToSuid("Null");
 local Return_SUID = StringToSuid("Return to the list of mods.")
 local OpenMenu_ARR = CreateGuidArray(1, {OpenMenu_STRING});
-local Go_ARR = CreateGuidArray(1, {Go_STRING});
+local Go_ARR = CreateGuidArray(2, {Go_STRING, Go_STRING});
 
 
 
@@ -373,7 +373,8 @@ local function GetBackButtonData()
 	newBaseData:write_dword(OptionName_OFFSET, Back_SUID);
 	newBaseData:write_dword(OptionMessage_OFFSET, Return_SUID);
 	
-	newData._SelectNum = 0;
+	newData._SelectNum = 1;
+	newData._SelectValue = 1;
 	newBaseData.OptionItemName = Go_ARR;
 	newBaseData.OptionItemSelectMessage = newBaseData.OptionItemName;
 	
@@ -413,14 +414,15 @@ local function CreateOptionDataArrays(mod)
 	
 	
 	mod.unifiedBaseArray = baseDataArray;
-	mod.unifiedArray = dataArray;	
+	mod.unifiedArray = dataArray;
+	mod.backBtnData = backData._OptionData;
 end
 
 
 local function SwapOptionArray(toBaseArray, toDataArray)
 	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
 	optionWindow:setOpenOption(SAVE_DATA_IDX);
-	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
+	optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
 end
 
 local needsRepaint = false;
@@ -638,6 +640,23 @@ local function PreOptionChange(args)
 end
 
 
+local function PreSwitchState(args)
+	
+	--2 is in the state of selecting settings
+	if modMenuIsOpen and optionWindow._State == 1 then
+		--i kinda cant belivee this actually works
+		optionWindow._State = 2;
+		modMenuIsOpen = false;
+		SwapOptionArray(modBaseDataList, modDataList);
+		--SetUnifiedOptionArrays(SAVE_DATA_IDX, modBaseDataList, modDataList);
+		log.debug("STATE: " .. optionWindow._State);
+		return sdk.PreHookResult.SKIP_ORIGINAL;
+	end
+end
+
+
+
+
 local ignoreJmp = true;
 
 sdk.hook(sdk.find_type_definition("snow.gui.GuiCommonMessageWindow"):get_method("setSystemMessageText(System.String, snow.gui.SnowGuiCommonUtility.Segment)"), PreOpt, PostDef, ignoreJmp);
@@ -649,6 +668,8 @@ sdk.hook(optionWindowType:get_method("ItemSelectDecideAction()"), PreSelect, Pos
 sdk.hook(optionWindowType:get_method("setOpenOptionWindow(System.Collections.Generic.List`1<snow.StmOptionDef.StmOptionCategoryType>, snow.gui.GuiOptionWindow._void_OptionFunction, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean)"), PreInitTopMenu, PostDef, ignoreJmp); --what a mouthfull
 sdk.hook(optionWindowType:get_method("initTopMenu"), PreDef, PostInitTopMenu, ignoreJmp);
 sdk.hook(optionWindowType:get_method("changeOptionState"), PreOptionChange, PostDef, ignoreJmp);
+sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.List`1<snow.StmUnifiedOptionData>, System.Int32)"), PreSwitchState, PostDef, ignoreJmp);
+--snow.gui.GuiOptionWindow.setIsEditValue(System.Boolean)
 --ItemSelectDecideAction
 --updateSelectValueSelect
 --updateCategorySelect()
@@ -667,6 +688,36 @@ end
 
 local function Options(mod)
 	
+	
+	local wasReset = false;
+	
+	--this is a really goofy way of detecting if the options were reset but there wasnt a function to hook for it
+	--so this is a clever way i think
+	if mod.backBtnData._SelectValue == 0 then
+	
+		mod.backBtnData._SelectValue = 1;
+	
+		if _CModUiCurMod.OnResetAllSettings then
+			_CModUiCurMod.OnResetAllSettings();
+		end
+		
+		for key, opt in pairs(mod.optionsList) do
+			opt.wasChanged = false;
+		end
+		
+		mod.guiCallback();
+		
+		for key, opt in pairs(mod.optionsList) do
+			log.debug(opt.desiredValue);
+			opt.wasChanged = false;
+		end
+		
+		
+		needsRepaint = true;
+		wasReset = true;
+	end
+	
+	
 	for key, opt in pairs(mod.optionsList) do
 	
 		if opt.needsUpdate then
@@ -675,7 +726,19 @@ local function Options(mod)
 	
 		local data = opt.data;
 	
-		if opt.type == SLIDER then
+		if wasReset then
+			opt.value = opt.desiredValue;
+			data._SelectValue = opt.desiredValue;
+			data._SliderValue = opt.desiredValue;
+			data._OldSliderValue = opt.desiredValue;
+			data._OldSelectValue = opt.desiredValue;
+			opt.wasChanged = true;
+			
+			if opt.isBtn then
+				opt.value = false;
+			end
+	
+		elseif opt.type == SLIDER then
 		
 			if data._SliderValue ~= opt.value then
 				opt.value = data._SliderValue;
@@ -708,7 +771,7 @@ local function Options(mod)
 		
 	end
 	
-	mod.callback();
+	mod.guiCallback();
 end
 
 
