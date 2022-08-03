@@ -261,7 +261,7 @@ end
 
 local function SetOptStrings(opt)
 
-	SetBaseDataOptionName(opt.baseData, opt.name);
+	SetBaseDataOptionName(opt.baseData, opt.displayName);
 	SetBaseDataOptionMessage(opt.baseData, opt.message);
 	
 	if opt.baseData._OptionItemName then

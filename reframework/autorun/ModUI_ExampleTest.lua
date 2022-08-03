@@ -84,6 +84,10 @@ GRAY
 	ModUI.Options(label, curValue, optionNames, optionMessages, toolTip)
 	ModUI.PromptYN(promptMessage, callback(result))
 	ModUI.PromptMsg(promptMessage, callback)
+	
+	ModUI.Repaint() -- forces game to re-show the data and show changes
+	ModUI.ForceDeselect() -- forces game to deselect current option
+	modObj.regenOptions -- can be set to true to force the API to regenerate the UI layout, but you probably dont need this
 ]]--
 
 

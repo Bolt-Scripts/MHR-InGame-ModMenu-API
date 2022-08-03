@@ -88,6 +88,7 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue)
 			desiredValue = defaultValue;
 			oldValue = defaultValue;
 			name = label;
+			displayName = label;
 			message = toolTip;
 			min = 0;
 			max = 0;
@@ -102,8 +103,9 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue)
 		return data, true;
 	else
 	
-		if mod.curOptIdx ~= data.optionIdx then
+		if data.name ~= label or mod.regenOptions then
 			mod.regenOptions = true;
+			return;
 		end
 		
 		CheckLabel(data, toolTip);
@@ -116,12 +118,13 @@ end
 function ModUI.Slider(label, curValue, min, max, toolTip, isFloat)
 	
 	local mod = _CModUiCurMod;	
-	local optData, new = GetOptionData(mod, SLIDER, label, toolTip, curValue);
+	local optData, new = GetOptionData(mod, SLIDER, label, toolTip, curValue);	
 	if new then
 		optData.min = min;
 		optData.max = max;
 		optData.float = isFloat;
 	end
+	if mod.regenOptions then return false, curValue; end
 	
 	local changed = optData.oldValue ~= optData.value;
 	if not optData.wasChanged then
@@ -156,6 +159,7 @@ function ModUI.Button(label, prompt, isHighlight, toolTip)
 
 	local mod = _CModUiCurMod;	
 	local optData, new = GetOptionData(mod, ENUM, label, toolTip);
+	
 
 	if new then
 		optData.isBtn = true;
@@ -164,9 +168,11 @@ function ModUI.Button(label, prompt, isHighlight, toolTip)
 		optData.prompt = prompt;
 		
 		if isHighlight then
-			optData.name = "<COL YEL>" .. optData.name .. "</COL>";
+			optData.displayName = "<COL YEL>" .. optData.displayName .. "</COL>";
 		end
 	end
+	if mod.regenOptions then return false; end
+	
 	
 	if optData.prompt ~= prompt then
 		optData.prompt = prompt;
@@ -192,6 +198,7 @@ function ModUI.Label(label, displayValue, toolTip)
 		opt.prompt = displayValue;
 		opt.enumNames = {displayValue};
 	end
+	if mod.regenOptions then return; end
 	
 	if opt.prompt ~= displayValue then
 		opt.prompt = displayValue;
@@ -217,6 +224,9 @@ function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip)
 		opt.max = count;
 		opt.enumNames = optionNames;
 		opt.enumMessages = optionMessages;
+	end
+	if mod.regenOptions then
+		return false, curValue;
 	end
 	
 	if optionNames ~= opt.enumNames or optionMessages ~= opt.enumMessages then
