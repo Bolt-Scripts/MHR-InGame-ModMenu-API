@@ -36,7 +36,20 @@ function ModUI.OnMenu(name, descript, uiCallback)
 		guiCallback = uiCallback;
 		created = false;
 		curOptIdx = 0;
+		indent = 0;
 	};
+	
+	mod.UpdateGui = (function()
+	
+		mod.indent = 0;
+		mod.curOptIdx = 0;
+		
+		mod.guiCallback();
+		
+		if mod.curOptIdx ~= mod.optionsCount then
+			mod.regenOptions = true;
+		end		
+	end)
 	
 	table.insert(_CModUiList, mod);
 	
@@ -63,11 +76,42 @@ function ModUI.ForceDeselect()
 	optionWindow:setIsEditValue(false);
 end
 
+function ModUI.IncreaseIndent(val)
+	_CModUiCurMod.indent = _CModUiCurMod.indent + (val and val or 1);
+end
+
+function ModUI.DecreaseIndent(val)
+	_CModUiCurMod.indent = _CModUiCurMod.indent - (val and val or 1);	
+end
+
+
+function ModUI.SetIndent(val)
+	_CModUiCurMod.indent = val;	
+end
+
+
 local function CheckLabel(opt, toolTip)
 
 	if (opt.message ~= toolTip) then
 		opt.message = toolTip;
 		opt.needsUpdate = true;
+	end
+end
+
+
+local function GetIndent(level)
+	local pad = "			";
+	for i = 2, level do
+		pad = pad .. "			";
+	end
+	return pad;
+end
+
+local function GetFormattedName(name)
+	if _CModUiCurMod.indent > 0 then
+		return GetIndent(_CModUiCurMod.indent) .. name;
+	else
+		return name;
 	end
 end
 
@@ -88,8 +132,9 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue)
 			desiredValue = defaultValue;
 			oldValue = defaultValue;
 			name = label;
-			displayName = label;
+			displayName = (optType == HEADER) and label or GetFormattedName(label);
 			message = toolTip;
+			displayMessage = toolTip;
 			min = 0;
 			max = 0;
 			enumCount = 1;
@@ -249,7 +294,6 @@ end
 local offOn = {"✖","√"};
 local offOnMsg = {"Disabled.","Enabled."};
 function ModUI.Toggle(label, curValue, toolTip, togNames, togMsgs)
-	
 	local idx = curValue and 2 or 1;
 	if not togNames then togNames = offOn; end
 	if not togMsgs then togMsgs = offOnMsg; end

@@ -262,7 +262,7 @@ end
 local function SetOptStrings(opt)
 
 	SetBaseDataOptionName(opt.baseData, opt.displayName);
-	SetBaseDataOptionMessage(opt.baseData, opt.message);
+	SetBaseDataOptionMessage(opt.baseData, opt.displayMessage);
 	
 	if opt.baseData._OptionItemName then
 		opt.baseData._OptionItemName:force_release();
@@ -735,6 +735,7 @@ local function RegenModOpts(mod)
 
 	mod.optionsOrdered = {};
 	mod.curOptIdx = 0;
+	mod.indent = 0;
 	mod.guiCallback();
 	mod.optionsCount = mod.curOptIdx;
 	mod.regenOptions = false;
@@ -827,12 +828,7 @@ local function Options(mod)
 		
 	end
 	
-	mod.curOptIdx = 0;
-	mod.guiCallback();
-	
-	if mod.curOptIdx ~= mod.optionsCount then
-		mod.regenOptions = true;
-	end
+	mod.UpdateGui();
 end
 
 
