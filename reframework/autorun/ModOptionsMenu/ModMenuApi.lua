@@ -116,7 +116,7 @@ local function GetFormattedName(name)
 end
 
 
-local function GetOptionData(mod, optType, label, toolTip, defaultValue)
+local function GetOptionData(mod, optType, label, toolTip, defaultValue, immediate)
 
 	mod.curOptIdx = mod.curOptIdx + 1;
 	local data = mod.optionsOrdered[mod.curOptIdx];
@@ -140,6 +140,7 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue)
 			enumCount = 1;
 			needsUpdate = false;
 			optionIdx = mod.curOptIdx;
+			immediate = immediate;
 		};
 		
 		mod.regenOptions = true;
@@ -160,10 +161,10 @@ end
 
 
 
-function ModUI.Slider(label, curValue, min, max, toolTip, isFloat)
+function ModUI.Slider(label, curValue, min, max, toolTip, immediate, isFloat)
 	
 	local mod = _CModUiCurMod;	
-	local optData, new = GetOptionData(mod, SLIDER, label, toolTip, curValue);	
+	local optData, new = GetOptionData(mod, SLIDER, label, toolTip, curValue, immediate);	
 	if new then
 		optData.min = min;
 		optData.max = max;
@@ -173,7 +174,8 @@ function ModUI.Slider(label, curValue, min, max, toolTip, isFloat)
 	
 	local changed = optData.oldValue ~= optData.value;
 	if not optData.wasChanged then
-		optData.desiredValue = curValue;
+		--having to round this value is really dumb but otherwise it starts to bork things because of floating point precision issues
+		optData.desiredValue = math.floor(curValue + 0.5);
 	end
 	optData.wasChanged = false;
 	optData.oldValue = optData.value;
@@ -183,11 +185,11 @@ end
 -- the game legit internally represents float sliders as integers but scaled by 100 and then adds a decimal point...
 -- this is why i initially thought the game didnt even support float sliders
 -- this implementation is just so wack
-function ModUI.FloatSlider(label, curValue, min, max, toolTip)
+function ModUI.FloatSlider(label, curValue, min, max, toolTip, immediate)
 
 	if not curValue then curValue = 0; end
 
-	local changed, val = ModUI.Slider(label, curValue * 100, min * 100, max * 100, toolTip, true);
+	local changed, val = ModUI.Slider(label, curValue * 100, min * 100, max * 100, toolTip, immediate, true);
 	return changed, val * 0.01;
 end
 
@@ -253,10 +255,10 @@ function ModUI.Label(label, displayValue, toolTip)
 end
 
 
-function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip)
+function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip, immediate)
 
 	local mod = _CModUiCurMod;	
-	local opt, new = GetOptionData(mod, ENUM, label, toolTip, curValue - 1);
+	local opt, new = GetOptionData(mod, ENUM, label, toolTip, curValue - 1, immediate);
 
 	if new then
 	
@@ -293,11 +295,11 @@ end
 --not entirely sure how i feel about these symbols but its neat
 local offOn = {"✖","√"};
 local offOnMsg = {"Disabled.","Enabled."};
-function ModUI.Toggle(label, curValue, toolTip, togNames, togMsgs)
+function ModUI.Toggle(label, curValue, toolTip, togNames, togMsgs, immediate)
 	local idx = curValue and 2 or 1;
 	if not togNames then togNames = offOn; end
 	if not togMsgs then togMsgs = offOnMsg; end
-	local changed, optSel = ModUI.Options(label, idx, togNames, togMsgs, toolTip);
+	local changed, optSel = ModUI.Options(label, idx, togNames, togMsgs, toolTip, immediate);
 	return changed, (optSel == 2);
 end
 

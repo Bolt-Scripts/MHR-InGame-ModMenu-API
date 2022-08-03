@@ -76,18 +76,22 @@ GRAY
 	all tooltip type things should be optional
 	
 	ModUI.OnMenu(name, descript, uiCallback)
-	ModUI.FloatSlider(label, curValue, min, max, toolTip) -- keep in mind this value only has precision to the nearest hundreth
-	ModUI.Slider(label, curValue, min, max, toolTip)
+	ModUI.FloatSlider(label, curValue, min, max, toolTip, isImmediateUpdate) -- keep in mind this value only has precision to the nearest hundreth
+	ModUI.Slider(label, curValue, min, max, toolTip, isImmediateUpdate)
 	ModUI.Button(label, prompt, isHighlight, toolTip)
-	ModUI.Toggle(label, curValue, toolTip, (optional)togNames[2], (optional)togMsgs[2])
+	ModUI.Toggle(label, curValue, toolTip, (optional)togNames[2], (optional)togMsgs[2], , isImmediateUpdate)
 	ModUI.Label(label, displayValue, toolTip)
-	ModUI.Options(label, curValue, optionNames, optionMessages, toolTip)
+	ModUI.Options(label, curValue, optionNames, optionMessages, toolTip, isImmediateUpdate)
 	ModUI.PromptYN(promptMessage, callback(result))
 	ModUI.PromptMsg(promptMessage, callback)
 	
 	ModUI.Repaint() -- forces game to re-show the data and show changes
 	ModUI.ForceDeselect() -- forces game to deselect current option
 	modObj.regenOptions -- can be set to true to force the API to regenerate the UI layout, but you probably dont need this
+	
+	ModUI.IncreaseIndent()
+	ModUI.DecreaseIndent()
+	ModUI.SetIndent(indentLevel);
 ]]--
 
 

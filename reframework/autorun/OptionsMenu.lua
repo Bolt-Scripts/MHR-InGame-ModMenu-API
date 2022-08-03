@@ -768,6 +768,11 @@ end
 
 local function RegenModOpts(mod)
 
+	if optionWindow._State > 2 then
+		--prevent options from being regenerated while user is editing something
+		return;
+	end
+
 	mod.optionsOrdered = {};
 	mod.curOptIdx = 0;
 	mod.indent = 0;
@@ -777,14 +782,14 @@ local function RegenModOpts(mod)
 	
 	CreateOptionDataArrays(mod);
 	SwapOptionArray(mod.unifiedBaseArray, mod.unifiedArray, true);
+	return sdk.PreHookResult.SKIP_ORIGINAL;
 end
 
 local function Options(mod)
 	
 	
-	if mod.regenOptions then
-		RegenModOpts(mod);
-		return sdk.PreHookResult.SKIP_ORIGINAL;
+	if mod.regenOptions then		
+		return RegenModOpts(mod);
 	end
 	
 	local wasReset = false;
@@ -832,7 +837,8 @@ local function Options(mod)
 	
 		elseif opt.type == SLIDER then
 		
-			if data._SliderValue ~= opt.value then
+			local checkValue = opt.immediate and data._SliderValue or data._OldSliderValue;
+			if checkValue ~= opt.value then
 				opt.value = data._SliderValue;
 				data._OldSliderValue = opt.value;
 				opt.desiredValue = opt.value;
@@ -847,7 +853,8 @@ local function Options(mod)
 			
 		elseif opt.type == ENUM and not opt.isBtn then
 		
-			if data._SelectValue ~= opt.value then
+			local checkValue = opt.immediate and data._SelectValue or data._OldSelectValue;
+			if checkValue ~= opt.value then
 				opt.value = data._SelectValue;
 				data._OldSelectValue = opt.value;
 				opt.desiredValue = opt.value;
