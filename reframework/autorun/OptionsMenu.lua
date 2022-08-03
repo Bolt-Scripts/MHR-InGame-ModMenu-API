@@ -103,7 +103,8 @@ local Go_STRING = ("<COL YEL>Go</COL>");
 local OpenMenu_STRING = ("<COL YEL>Open Menu</COL>");
 local Back_SUID = StringToSuid("Back To Mod List");
 local Null_SUID = StringToSuid("Null");
-local Return_SUID = StringToSuid("Return to the list of mods.")
+local Return_Str = "Return to the list of mods.";
+local Return_SUID = StringToSuid(Return_Str);
 local OpenMenu_ARR = CreateGuidArray(1, {OpenMenu_STRING});
 local Go_ARR = CreateGuidArray(2, {Go_STRING, Go_STRING});
 
@@ -156,6 +157,12 @@ local function SetOptionWindow(optWin)
 	
 	mainScrollList = optionWindow._scrL_MainOption;
 	subHeadingTxt = optionWindow._txt_SubHeading;
+end
+
+local ignoreSetSysMsg = false;
+local function SetSystemMessage(str)
+	messageWindow:setSystemMessageText(str, 40);
+	ignoreSetSysMsg = true;
 end
 
 
@@ -391,12 +398,12 @@ end
 
 
 local function GetSelectedModIndex()
-	return mainScrollList:get_CursorIndex() + 1;
+	return mainScrollList:get_SelectedIndex() + 1;
 end
 
 local function GetIsModsTabSelected()
 	if not optionWindow then return false end	
-	return (optionWindow._scrL_TopMenu:get_CursorIndex() == MOD_TAB_IDX) and optionWindow:isOpenOption();
+	return (optionWindow._scrL_TopMenu:get_SelectedIndex() == MOD_TAB_IDX) and optionWindow:isOpenOption();
 end
 
 
@@ -430,42 +437,56 @@ local function CreateOptionDataArrays(mod)
 end
 
 
+local desiredSelectIdx = -1
+local desiredCursorIdx = -1;
 local desiredScrollIdx = -1;
-local scrollMenuObj = sdk.create_instance("snow.gui.SnowGuiCommonUtility.MenuScrollCursor", true):add_ref();
-scrollMenuObj:call(".ctor", 10, 10);
-local function SwapOptionArray(toBaseArray, toDataArray, maintainCursorPos)
-
-	local arrSize = toBaseArray:get_size();
-	scrollMenuObj:setMenuParam((arrSize >= 10 and 10 or arrSize), arrSize);
-
-	if maintainCursorPos then
-		local idx = GetSelectedModIndex();
-		desiredScrollIdx = (idx <= arrSize and idx or arrSize) - 1;
+local function SetDesiredScrollIndexes(maintainIndex)
+	if maintainIndex then
+		desiredSelectIdx = mainScrollList:get_SelectedIndex();
+		desiredCursorIdx = mainScrollList:get_CursorIndex();
+		desiredScrollIdx = mainScrollList:get_ScrollIndex();
 	else
+		desiredSelectIdx = 0;
+		desiredCursorIdx = 0;
 		desiredScrollIdx = 0;
 	end
-
-	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
-	optionWindow:setOpenOption(SAVE_DATA_IDX);
-	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
 end
 
-local function UpdateSelectedIdx()
+local function UpdateScrollIndex(clear)
 
 	if desiredScrollIdx < 0 then return end
 
-	scrollMenuObj:set_index(desiredScrollIdx);
-	scrollMenuObj:set_cursorIndex(desiredScrollIdx);
+	if optionWindow._State > 1 then
+		--desiredScrollIdx is also used later and used to replace the scroll index on setOptionList bc of course it has to be used there too thats not confusing or anything
+		--not sure if all of this is necessary or not but at least it makes sense now and works
+		menuCursor = optionWindow:get_OptionMenuListCursor();
+		menuCursor:set_scrollIndex(desiredScrollIdx);
+		menuCursor:set_cursorIndex(desiredCursorIdx);
+		menuCursor:setIndex(desiredSelectIdx, true);
+		optionWindow:updateOptionCursor(menuCursor, true);
+	end
 	
-	optionWindow:updateOptionCursor(scrollMenuObj, true);
-	optionWindow:updateOptionCursor(scrollMenuObj, true);
-	
-	--it was so scuffed to figure this out that the literal heckin "updateOptionCursor" function DOESNT ACTUALLY UPDATE THE CURSOR VALUE
-	--so have to manually change this as well
-	optionWindow:get_OptionMenuListCursor():setIndex(desiredScrollIdx, false);
-	
-	desiredScrollIdx = -1;
+	if clear then
+		--reset this so it doesnt overrite the value in setOptionList anymore
+		desiredScrollIdx = -1;
+	end
 end
+
+
+local function SwapOptionArray(toBaseArray, toDataArray, maintainCursorPos)
+
+	SetDesiredScrollIndexes(maintainCursorPos);
+
+	ignoreSetSysMsg = true;
+	
+	SetUnifiedOptionArrays(SAVE_DATA_IDX, toBaseArray, toDataArray);
+	optionWindow:setOpenOption(SAVE_DATA_IDX);
+	--optionWindow:setOptionList(optionWindow._DataList, 0); --not sure if this is really necessary
+	
+	UpdateScrollIndex();
+end
+
+
 
 
 local needsRepaint = false;
@@ -540,6 +561,11 @@ local function PreOpt(args)
 	--local type = sdk.to_int64(args[4]);
 	--log.debug("Str: " .. sdk.to_managed_object(str):call("ToString()") .. " : " .. type);
 	
+	if ignoreSetSysMsg then
+		ignoreSetSysMsg = false;
+		return sdk.PreHookResult.SKIP_ORIGINAL;
+	end
+	
 	if (sdk.to_int64(args[4]) == 40) and GetIsModsTabSelected() then
 		if not modMenuIsOpen and optionWindow._State == 1 then
 			args[3] = ModsListDesc_Ptr;
@@ -598,7 +624,7 @@ local function PreSelect(args)
 	
 	if modMenuIsOpen then
 	
-		local pressIdx = optionWindow._scrL_MainOption:get_CursorIndex();
+		local pressIdx = optionWindow._scrL_MainOption:get_SelectedIndex();
 		local mod = _CModUiCurMod;
 	
 		--back button is at index 0 so handle returning to main mod list
@@ -627,10 +653,12 @@ local function PreSelect(args)
 	_CModUiCurMod = selectedMod;
 	modMenuIsOpen = true;	
 	
+	--this prevents the message text showing the save data message if the cursor hovers a header after the swap operation, 40 is options segment
+	SetSystemMessage(Return_Str);
+	
 	SwapOptionArray(selectedMod.unifiedBaseArray, selectedMod.unifiedArray);
 	
-	--this prevents the message text showing the save data message if the cursor hovers a header after the swap operation, 40 is options segment
-	messageWindow:setSystemMessageText("", 40);
+	
 	
 	return sdk.PreHookResult.SKIP_ORIGINAL; 
 end
@@ -680,14 +708,21 @@ local function PreOptionChange(args)
 end
 
 
-local function PreSwitchState(args)	
+local function PreSetList(args)	
+	
+	if desiredScrollIdx >= 0 then
+		--need to override select index here
+		args[4] = sdk.to_ptr(desiredScrollIdx);
+	end	
 	
 	--2 is in the state of selecting settings
 	if modMenuIsOpen and optionWindow._State == 1 then
-		--i kinda cant belivee this actually works
+		--i kinda cant believe this actually works
+		--closes the mod menu but returns the state to selecting to emulate backing out of the sub menu
 		optionWindow._State = 2;
 		modMenuIsOpen = false;
 		SwapOptionArray(modBaseDataList, modDataList);
+		SetSystemMessage(_CModUiList[1].description);
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 end
@@ -709,7 +744,7 @@ sdk.hook(optionWindowType:get_method("ItemSelectDecideAction()"), PreSelect, Pos
 sdk.hook(optionWindowType:get_method("setOpenOptionWindow(System.Collections.Generic.List`1<snow.StmOptionDef.StmOptionCategoryType>, snow.gui.GuiOptionWindow._void_OptionFunction, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean)"), PreInitTopMenu, PostDef, ignoreJmp); --what a mouthfull
 sdk.hook(optionWindowType:get_method("initTopMenu"), PreDef, PostInitTopMenu, ignoreJmp);
 sdk.hook(optionWindowType:get_method("changeOptionState"), PreOptionChange, PostDef, ignoreJmp);
-sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.List`1<snow.StmUnifiedOptionData>, System.Int32)"), PreSwitchState, PostDef, ignoreJmp);
+sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.List`1<snow.StmUnifiedOptionData>, System.Int32)"), PreSetList, PostDef, ignoreJmp);
 --ItemSelectDecideAction
 --updateSelectValueSelect
 --updateCategorySelect()
@@ -843,7 +878,7 @@ local function PreOptWindowUpdate(args)
 		uiOpen = true;
 		
 		if GetIsModsTabSelected() then
-			SwapOptionArray(modBaseDataList, modDataList, true);
+			SwapOptionArray(modBaseDataList, modDataList);
 			return sdk.PreHookResult.SKIP_ORIGINAL;
 		end
 	end
@@ -867,13 +902,11 @@ local function PreOptWindowUpdate(args)
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 
-	UpdateSelectedIdx();
-
+	UpdateScrollIndex(true);
 	
 	if modMenuIsOpen then
 		return Options(mod);
 	end
-	
 end
 
 
