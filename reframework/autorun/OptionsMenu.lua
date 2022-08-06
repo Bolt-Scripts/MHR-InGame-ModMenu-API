@@ -440,11 +440,20 @@ end
 local desiredSelectIdx = -1
 local desiredCursorIdx = -1;
 local desiredScrollIdx = -1;
-local function SetDesiredScrollIndexes(maintainIndex)
+local function SetDesiredScrollIndexes(maintainIndex, itemCount)
 	if maintainIndex then
 		desiredSelectIdx = mainScrollList:get_SelectedIndex();
 		desiredCursorIdx = mainScrollList:get_CursorIndex();
 		desiredScrollIdx = mainScrollList:get_ScrollIndex();
+		
+		--more logic to clamp these values since the game will absolutely not hesitate to crash if any of this goes past the limit
+		local maxDispItems = 10;
+		local maxScroll = itemCount - maxDispItems;
+		if maxScroll < 0 then maxScroll = 0; end
+		if desiredScrollIdx > maxScroll then desiredScrollIdx = maxScroll; end
+		
+		if desiredSelectIdx >= itemCount then desiredSelectIdx = itemCount - 1; end
+		if desiredCursorIdx >= maxDispItems then desiredCursorIdx = maxDispItems - 1; end
 	else
 		desiredSelectIdx = 0;
 		desiredCursorIdx = 0;
@@ -452,14 +461,18 @@ local function SetDesiredScrollIndexes(maintainIndex)
 	end
 end
 
+local function ClampDesiredScrollIndexes()
+	
+end
+
 local function UpdateScrollIndex(clear)
 
 	if desiredScrollIdx < 0 then return end
 
-	if optionWindow._State > 1 then
+	if optionWindow._State > 1 then	
 		--desiredScrollIdx is also used later and used to replace the scroll index on setOptionList bc of course it has to be used there too thats not confusing or anything
 		--not sure if all of this is necessary or not but at least it makes sense now and works
-		menuCursor = optionWindow:get_OptionMenuListCursor();
+		local menuCursor = optionWindow:get_OptionMenuListCursor();
 		menuCursor:set_scrollIndex(desiredScrollIdx);
 		menuCursor:set_cursorIndex(desiredCursorIdx);
 		menuCursor:setIndex(desiredSelectIdx, true);
@@ -475,7 +488,7 @@ end
 
 local function SwapOptionArray(toBaseArray, toDataArray, maintainCursorPos)
 
-	SetDesiredScrollIndexes(maintainCursorPos);
+	SetDesiredScrollIndexes(maintainCursorPos, toBaseArray:get_size());
 
 	ignoreSetSysMsg = true;
 	
@@ -514,7 +527,7 @@ end
 --for whatever reason the top menu text doesnt seem to go through the same message ID stuff or something so I just did this instead /shrug
 local function ReplaceTopMenuText()
 	local elements = optionWindow._scrL_TopMenu:get_Items();
-	FindItemText(elements[MOD_TAB_IDX]:get_Child());	
+	FindItemText(elements[MOD_TAB_IDX]:get_Child());
 end
 
 
@@ -712,6 +725,7 @@ local function PreSetList(args)
 	
 	if desiredScrollIdx >= 0 then
 		--need to override select index here
+		ClampDesiredScrollIndexes();
 		args[4] = sdk.to_ptr(desiredScrollIdx);
 	end	
 	
