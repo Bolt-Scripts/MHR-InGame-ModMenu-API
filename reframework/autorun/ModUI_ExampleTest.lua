@@ -61,8 +61,7 @@ end
 
 --[[
 Known colors for "rich text": There really arent that many
-Not sure if more exist but you can try, I'd like to know
-Also not sure if there exist any other text effects
+But you can add more with ModUI.AddTextColor
 YEL
 RED
 GRAY
@@ -89,6 +88,11 @@ GRAY
 	ModUI.ForceDeselect() -- forces game to deselect current option
 	modObj.regenOptions -- can be set to true to force the API to regenerate the UI layout, but you probably dont need this
 	
+	--call this BEFORE your UI code
+	--keep in mind these are shared across mods so use descriptive names
+	--do NOT include # in your hex color code string
+	ModUI.AddTextColor(colName, colHexStr)
+	
 	ModUI.IncreaseIndent()
 	ModUI.DecreaseIndent()
 	ModUI.SetIndent(indentLevel);
@@ -101,6 +105,9 @@ local buttonTxt = "Press Me";
 local buttonPressed = false;
 local labelValue = tostring(settings.slide1);
 
+
+--Colors
+modUI.AddTextColor("purp", "9F2B68");
 
 
 local optionNames = {
@@ -116,7 +123,7 @@ local optionDescriptions = {
 };
 
 
-local name = "<COL RED>Rad Example Mod</COL>";
+local name = "<COL purp>Rad Example Mod</COL>";
 local description = "It's just a test mod. What more do you want?\nAuthored by: Bolt";
 local modObj = modUI.OnMenu(name, description, function()
 
