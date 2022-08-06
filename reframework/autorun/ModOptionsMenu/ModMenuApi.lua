@@ -8,6 +8,7 @@ if not _CModUiList then
 	_CModUiList = {};
 	_CModUiCurMod = nil;
 	_CModUiPromptCoRo = nil;
+	_CmodUiColors = {};
 end
 
 local ModUI = {
@@ -20,20 +21,6 @@ local OTHERWINDOW = 2; --not used as this basically opens sub windows for graphi
 local WATCHITEM = 3; --no idea what this is for really
 local HEADER = 4;
 local BUTTON = 5; --custom type
-
-
-
-local msgManagerType = sdk.find_type_definition("snow.gui.MessageManager");
-local ColorStringType = sdk.find_type_definition("snow.gui.MessageManager.ColorString");
-local ColTagUserData = msgManagerType:get_field("ColTagUserData");
-
-if not _CModUiInitialized then
-	_CModUiInitialized = true;
-	
-	--clear the custom colors from the list so we dont create duplicates
-	local colList = ColTagUserData:get_data(nil).DataList;
-	colList.mSize = 3;
-end
 
 
 function ModUI.OnMenu(name, descript, uiCallback)		
@@ -81,12 +68,15 @@ function ModUI.Repaint()
 	_CModUiRepaint();
 end
 
+local ColorStringType = sdk.find_type_definition("snow.gui.MessageManager.ColorString");
 function ModUI.AddTextColor(colName, colHexStr)
-	local colList = ColTagUserData:get_data(nil).DataList;
+
+	if not _CmodUiColors then _CmodUiColors = {}; end
+
 	local newCol = ColorStringType:create_instance():add_ref();
 	newCol.ColorName = colName;
 	newCol.ColorValueStr = colHexStr;
-	colList:Add(newCol);
+	table.insert(_CmodUiColors, newCol);
 end
 
 function ModUI.ForceDeselect()

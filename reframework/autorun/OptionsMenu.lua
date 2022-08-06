@@ -123,6 +123,9 @@ local guiUtilityType = sdk.find_type_definition("snow.gui.SnowGuiCommonUtility")
 local playSound = guiUtilityType:get_method("reqSe(System.UInt32)");
 local uiConfirmSoundID = 0xaa66032d;
 
+local msgManagerType = sdk.find_type_definition("snow.gui.MessageManager");
+local ColTagUserData = msgManagerType:get_field("ColTagUserData");
+
 
 local uiOpen = false;
 local mainBaseDataList;
@@ -511,7 +514,6 @@ function _CModUiRepaint()
 	needsRepaint = true;
 end
 
-
 local textType = sdk.find_type_definition("via.gui.Text");
 local function FindItemText(em)
 
@@ -535,6 +537,25 @@ local function ReplaceTopMenuText()
 end
 
 
+local colList;
+local function HandleCustomColors()
+	if _CmodUiColors then
+		for idx, col in ipairs(_CmodUiColors) do
+			colList:Add(col);
+		end
+		
+		_CmodUiColors = nil;
+	end
+end
+
+local function InitCustomColors()
+	--clear the custom colors from the list so we dont create duplicates
+	colList = ColTagUserData:get_data(nil).DataList;
+	colList.mSize = 3;
+end
+
+
+
 local function FirstOpen()	
 	
 	defaultSelMsgGuidArr = CreateGuidArray(1, {""});
@@ -542,8 +563,9 @@ local function FirstOpen()
 	--need to store this here so we can swap between arrays later
 	mainBaseDataList, mainDataList = GetUnifiedOptionArrays(SAVE_DATA_IDX);
 	mainBaseDataList:add_ref_permanent();
-	mainDataList:add_ref_permanent();	
+	mainDataList:add_ref_permanent();
 	
+	InitCustomColors();	
 	
 	if not _CModUiList then _CModUiList = {}; end
 	
@@ -556,6 +578,11 @@ local function FirstOpen()
 	
 	uiOpen = true;
 end
+
+
+
+
+
 
 
 
@@ -773,6 +800,9 @@ sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.L
 
 
 
+
+
+
 -----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------HANDLE GUI--------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -930,6 +960,7 @@ local function PreOptWindowUpdate(args)
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 
+	HandleCustomColors();
 	UpdateScrollIndex(true);
 	
 	if modMenuIsOpen then
