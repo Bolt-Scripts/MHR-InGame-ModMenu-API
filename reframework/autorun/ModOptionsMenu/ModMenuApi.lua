@@ -339,7 +339,8 @@ function ModUI.PromptYN(promptMessage, callback)
 	
 		coroutine.yield();
 		while result == 2 do
-			result = guiMgr:updateYNInfoWindow(0xaa66032d);
+			local uiConfirmSoundID = 0xaa66032d;
+			result = guiMgr:updateYNInfoWindow(uiConfirmSoundID);
 			coroutine.yield();
 		end
 		

@@ -119,6 +119,10 @@ local get_Components = goType:get_method("get_Components");
 local get_Name = goType:get_method("get_Name");
 local getComponent = goType:get_method("getComponent(System.Type)");
 
+local guiUtilityType = sdk.find_type_definition("snow.gui.SnowGuiCommonUtility");
+local playSound = guiUtilityType:get_method("reqSe(System.UInt32)");
+local uiConfirmSoundID = 0xaa66032d;
+
 
 local uiOpen = false;
 local mainBaseDataList;
@@ -643,15 +647,17 @@ local function PreSelect(args)
 		--back button is at index 0 so handle returning to main mod list
 		if pressIdx == 0 then
 			modMenuIsOpen = false;
+			playSound(nil, uiConfirmSoundID);
 			SwapOptionArray(modBaseDataList, modDataList);
 			return sdk.PreHookResult.SKIP_ORIGINAL;
 			
 		elseif mod.optionsOrdered[pressIdx].isBtn then
+			playSound(nil, uiConfirmSoundID);
 			mod.optionsOrdered[pressIdx].value = true;
 			return sdk.PreHookResult.SKIP_ORIGINAL;
 		end
 		
-		--return if we clicked an option that wasnt the back button
+		--return if we clicked an option that wasnt a button
 		return;
 	end
 	
@@ -668,6 +674,7 @@ local function PreSelect(args)
 	
 	--this prevents the message text showing the save data message if the cursor hovers a header after the swap operation, 40 is options segment
 	SetSystemMessage(Return_Str);
+	playSound(nil, uiConfirmSoundID);
 	
 	SwapOptionArray(selectedMod.unifiedBaseArray, selectedMod.unifiedArray);
 	
