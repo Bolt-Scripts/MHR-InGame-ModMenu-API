@@ -12,6 +12,7 @@ local function CreateNewSettings()
 		slide1 = 42;
 		slide2 = 314;
 		select1 = 1;
+		check1 = false;
 		toggle1 = false;
 		hide = false;
 	}
@@ -175,6 +176,9 @@ local modObj = modUI.OnMenu(name, description, function()
 	
 	if not settings.hide then
 		modUI.Header("Another Header Just Because");
+		
+		changed, settings.check1 = modUI.CheckBox("Hey, A CheckBox!", settings.check1, "Why didn't I think of this sooner?!");
+		
 		modUI.Label("<COL YEL>It's a label I Guess</COL>", labelValue, "Exciting, right?");
 		
 		changed, settings.select1  = modUI.Options("My Option Set", settings.select1, optionNames, optionDescriptions,

@@ -11,7 +11,7 @@ if not _CModUiList then
 end
 
 local ModUI = {
-	version = 1.3;
+	version = 1.6;
 };
 
 local ENUM = 0;
@@ -254,6 +254,43 @@ function ModUI.Button(label, prompt, isHighlight, toolTip)
 	end
 	
 	return false;
+end
+
+
+local checkLabels = {"☐","☒"};
+function ModUI.CheckBox(label, curValue, toolTip)
+
+	local mod = _CModUiCurMod;
+	local optData, new = GetOptionData(mod, ENUM, label, toolTip);
+	
+	local idxValue = curValue and 1 or 0;
+	if new then
+		optData.isBtn = true;
+		optData.value = false;
+		optData.enumNames = checkLabels;
+		optData.enumCount = 2;
+		optData.max = 2;
+		optData.desiredValue = idxValue;
+	end
+	if mod.regenOptions then return false, curValue; end
+	
+	local changed = false;
+	if optData.value then
+		changed = true;
+	elseif optData.desiredValue ~= idxValue then
+		changed = true;
+	end
+	
+	if changed then
+		optData.value = false;
+		curValue = not curValue;
+		optData.desiredValue = curValue and 1 or 0;
+		optData.data._SelectValue = optData.desiredValue;
+		optData.data._OldSelectValue = optData.desiredValue;
+		ModUI.Repaint();
+	end
+	
+	return changed, curValue;
 end
 
 
