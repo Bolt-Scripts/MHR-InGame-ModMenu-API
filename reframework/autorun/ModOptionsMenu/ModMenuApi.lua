@@ -53,14 +53,6 @@ function ModUI.OnMenu(name, descript, uiCallback)
 	
 	table.insert(_CModUiList, mod);
 	
-	--pre run the callback once on init to pre fill the mod's optionsList
-	--should be fine since the ui functions will simply return the initial values anyway
-	_CModUiCurMod = mod;
-	uiCallback();
-	
-	mod.regenOptions = false;
-	mod.optionsCount = mod.curOptIdx;
-	
 	return mod;
 end
 

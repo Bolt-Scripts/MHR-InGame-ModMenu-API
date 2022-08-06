@@ -554,6 +554,9 @@ local function InitCustomColors()
 	colList.mSize = 3;
 end
 
+local function InitMods()
+	
+end
 
 
 local function FirstOpen()	
@@ -565,11 +568,20 @@ local function FirstOpen()
 	mainBaseDataList:add_ref_permanent();
 	mainDataList:add_ref_permanent();
 	
-	InitCustomColors();	
+	InitCustomColors();
 	
 	if not _CModUiList then _CModUiList = {}; end
 	
 	for idx, mod in ipairs(_CModUiList) do
+		
+		--pre run the callback once on init to pre fill the mod's optionsList
+		--should be fine since the ui functions will simply return the initial values anyway
+		_CModUiCurMod = mod;
+		mod.guiCallback();
+		
+		mod.regenOptions = false;
+		mod.optionsCount = mod.curOptIdx;
+	
 		CreateOptionDataArrays(mod);
 		AddNewModOptionButton(mod);
    end

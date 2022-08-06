@@ -79,7 +79,8 @@ GRAY
 	ModUI.FloatSlider(label, curValue, min, max, toolTip, isImmediateUpdate) -- keep in mind this value only has precision to the nearest hundreth
 	ModUI.Slider(label, curValue, min, max, toolTip, isImmediateUpdate)
 	ModUI.Button(label, prompt, isHighlight, toolTip)
-	ModUI.Toggle(label, curValue, toolTip, (optional)togNames[2], (optional)togMsgs[2], , isImmediateUpdate)
+	ModUI.CheckBox(label, curValue, toolTip)
+	ModUI.Toggle(label, curValue, toolTip, (optional)togNames[2], (optional)togMsgs[2], isImmediateUpdate)
 	ModUI.Label(label, displayValue, toolTip)
 	ModUI.Options(label, curValue, optionNames, optionMessages, toolTip, isImmediateUpdate)
 	ModUI.PromptYN(promptMessage, callback(result))
@@ -96,7 +97,7 @@ GRAY
 	
 	ModUI.IncreaseIndent()
 	ModUI.DecreaseIndent()
-	ModUI.SetIndent(indentLevel);
+	ModUI.SetIndent(indentLevel)
 ]]--
 
 
@@ -193,7 +194,7 @@ local modObj = modUI.OnMenu(name, description, function()
 		if changed and settings.toggle1 then
 			modUI.ForceDeselect();
 			modUI.PromptMsg("Pervert...");
-			settings.toggle1 = false;			
+			settings.toggle1 = false;
 		end
 	end
 	
