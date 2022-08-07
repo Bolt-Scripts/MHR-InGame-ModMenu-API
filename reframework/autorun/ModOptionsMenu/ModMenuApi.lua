@@ -120,17 +120,6 @@ function ModUI.SetIndent(val)
 	_CModUiCurMod.indent = val;	
 end
 
-
-local function CheckLabel(opt, toolTip)
-
-	if (opt.message ~= toolTip) then
-		opt.message = toolTip;
-		opt.displayMessage = WrapText(toolTip);
-		opt.needsUpdate = true;
-	end
-end
-
-
 local function GetIndent(level)
 	local pad = "			";
 	for i = 2, level do
@@ -169,7 +158,6 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue, immedia
 			min = 0;
 			max = 0;
 			enumCount = 1;
-			needsUpdate = false;
 			optionIdx = mod.curOptIdx;
 			immediate = immediate;
 		};
@@ -180,12 +168,14 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue, immedia
 		return data, true;
 	else
 	
-		if data.name ~= label or mod.regenOptions then
+		if data.name ~= label
+			or data.message ~= toolTip
+			or mod.regenOptions then
+			
 			mod.regenOptions = true;
 			return;
 		end
 		
-		CheckLabel(data, toolTip);
 		return data, false;
 	end
 end
@@ -253,9 +243,7 @@ function ModUI.Button(label, prompt, isHighlight, toolTip)
 	
 	
 	if optData.prompt ~= prompt then
-		optData.prompt = prompt;
-		optData.enumNames = {prompt};
-		optData.needsUpdate = true;
+		mod.regenOptions = true;
 	end
 	
 	if optData.value then
@@ -316,9 +304,7 @@ function ModUI.Label(label, displayValue, toolTip)
 	if mod.regenOptions then return; end
 	
 	if opt.prompt ~= displayValue then
-		opt.prompt = displayValue;
-		opt.enumNames = {displayValue};
-		opt.needsUpdate = true;
+		mod.regenOptions = true;
 	end
 end
 
@@ -346,10 +332,7 @@ function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip, im
 	end
 	
 	if optionNames ~= opt.enumNames or optionMessages ~= opt.originalEnumMessages then
-		opt.enumNames = optionNames;
-		opt.originalEnumMessages = optionMessages;
-		opt.enumMessages = WrapTextTable(optionMessages);
-		opt.needsUpdate = true;
+		mod.regenOptions = true;
 	end
 	
 	local changed = opt.oldValue ~= opt.value;

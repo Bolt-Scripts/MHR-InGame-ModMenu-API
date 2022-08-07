@@ -819,16 +819,6 @@ sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.L
 ----------------------------------------------------------HANDLE GUI--------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------
 
-local function UpdateOpt(opt)
-	SetOptStrings(opt);
-	opt.needsUpdate = false;
-	
-	--go ahead and repaint if we arent selecting anything
-	if optionWindow._State <= 2 then
-		needsRepaint = true;
-	end
-end
-
 local function RegenModOpts(mod)
 
 	if optionWindow._State > 2 then
@@ -879,10 +869,6 @@ local function Options(mod)
 	
 	
 	for idx, opt in ipairs(mod.optionsOrdered) do
-	
-		if opt.needsUpdate then
-			UpdateOpt(opt);
-		end
 	
 		local data = opt.data;
 	
