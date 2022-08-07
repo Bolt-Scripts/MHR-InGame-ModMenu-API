@@ -125,6 +125,7 @@ local function CheckLabel(opt, toolTip)
 
 	if (opt.message ~= toolTip) then
 		opt.message = toolTip;
+		opt.displayMessage = WrapText(toolTip);
 		opt.needsUpdate = true;
 	end
 end
@@ -154,8 +155,6 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue, immedia
 	if not data then
 	
 		if not defaultValue then defaultValue = 0; end
-
-		toolTip = WrapText(toolTip);
 		
 		data = {
 			parentMod = mod;
@@ -166,7 +165,7 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue, immedia
 			name = label;
 			displayName = (optType == HEADER) and label or GetFormattedName(label);
 			message = toolTip;
-			displayMessage = toolTip;
+			displayMessage = WrapText(toolTip);
 			min = 0;
 			max = 0;
 			enumCount = 1;
