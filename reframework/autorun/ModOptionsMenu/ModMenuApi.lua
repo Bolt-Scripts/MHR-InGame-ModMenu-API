@@ -347,6 +347,7 @@ function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip, im
 	
 	if optionNames ~= opt.enumNames or optionMessages ~= opt.originalEnumMessages then
 		opt.enumNames = optionNames;
+		opt.originalEnumMessages = optionMessages;
 		opt.enumMessages = WrapTextTable(optionMessages);
 		opt.needsUpdate = true;
 	end
