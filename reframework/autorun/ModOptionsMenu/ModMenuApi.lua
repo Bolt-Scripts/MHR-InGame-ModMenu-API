@@ -23,6 +23,34 @@ local HEADER = 4;
 local BUTTON = 5; --custom type
 
 
+local lineBreakPattern = "(" .. ('.'):rep(40) .. ('.?'):rep(16) .. ") " -- in regex: /(.{40,56}) /
+
+local function WrapText(text)
+	if not text then
+		return text;
+	end
+	local newlinePos = text:find("\n");
+	if newlinePos then
+		return text; -- assume the mod author wants to place newlines themselves
+	end
+	if #text <= 56 then
+		return text;
+	end
+		
+	text = text:gsub(lineBreakPattern, "%1\n");
+  return text;
+end
+
+local function WrapTextTable(textTable)
+	local newTextTable = {};
+
+	for _, text in ipairs(textTable) do
+			table.insert(newTextTable, WrapText(text));
+	end
+
+	return newTextTable;
+end
+
 function ModUI.OnMenu(name, descript, uiCallback)		
 
 	if not name then name = ""; end
@@ -31,7 +59,7 @@ function ModUI.OnMenu(name, descript, uiCallback)
 	local mod = {
 		modName = name;
 		modNameSuid = 1;
-		description = descript;
+		description = WrapText(descript);
 		optionsOrdered = {};
 		guiCallback = uiCallback;
 		created = false;
@@ -97,6 +125,7 @@ local function CheckLabel(opt, toolTip)
 
 	if (opt.message ~= toolTip) then
 		opt.message = toolTip;
+		opt.displayMessage = WrapText(toolTip);
 		opt.needsUpdate = true;
 	end
 end
@@ -118,7 +147,6 @@ local function GetFormattedName(name)
 	end
 end
 
-
 local function GetOptionData(mod, optType, label, toolTip, defaultValue, immediate)
 
 	mod.curOptIdx = mod.curOptIdx + 1;
@@ -137,7 +165,7 @@ local function GetOptionData(mod, optType, label, toolTip, defaultValue, immedia
 			name = label;
 			displayName = (optType == HEADER) and label or GetFormattedName(label);
 			message = toolTip;
-			displayMessage = toolTip;
+			displayMessage = WrapText(toolTip);
 			min = 0;
 			max = 0;
 			enumCount = 1;
@@ -310,15 +338,17 @@ function ModUI.Options(label, curValue, optionNames, optionMessages, toolTip, im
 		opt.enumCount = count;
 		opt.max = count;
 		opt.enumNames = optionNames;
-		opt.enumMessages = optionMessages;
+		opt.originalEnumMessages = optionMessages;
+		opt.enumMessages = WrapTextTable(optionMessages);
 	end
 	if mod.regenOptions then
 		return false, curValue;
 	end
 	
-	if optionNames ~= opt.enumNames or optionMessages ~= opt.enumMessages then
+	if optionNames ~= opt.enumNames or optionMessages ~= opt.originalEnumMessages then
 		opt.enumNames = optionNames;
-		opt.enumMessages = optionMessages;
+		opt.originalEnumMessages = optionMessages;
+		opt.enumMessages = WrapTextTable(optionMessages);
 		opt.needsUpdate = true;
 	end
 	
