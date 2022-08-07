@@ -12,7 +12,7 @@ if not _CModUiList then
 end
 
 local ModUI = {
-	version = 1.6;
+	version = 1.65;
 };
 
 local ENUM = 0;
