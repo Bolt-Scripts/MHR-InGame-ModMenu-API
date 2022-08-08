@@ -126,7 +126,8 @@ Draws a cycle-able set of options for the user to choose between.
 
 #### Notes:
 	lua is NOT zero indexed, and neither is the input/output index of this function.
-	The tables you give for optionNames and optionMessages should be declared as variables OUTSIDE the scope of your GUI callback. This is to avoid lua creating a new table every frame and it being detected as a change and redrawing the UI every frame which breaks things.
+	The tables you give should be declared as variables OUTSIDE the scope of your UI callback.
+	This is to avoid creating a new table every frame causing the UI to redraw every frame which breaks things.
 
 ---
 
@@ -160,7 +161,8 @@ Basically a wrapper around ModUI.Options that only takes two options and returns
 #### Returns: `(tuple of) wasChanged, onOffValue`
 
 #### Notes:
-	The tables you give for togNames and togMsgs should be declared as variables OUTSIDE the scope of your GUI callback. This is to avoid lua creating a new table every frame and it being detected as a change and redrawing the UI every frame which breaks things.
+	The tables you give should be declared as variables OUTSIDE the scope of your UI callback.
+	This is to avoid creating a new table every frame causing the UI to redraw every frame which breaks things.
 
 ---
 
