@@ -577,10 +577,19 @@ local function FirstOpen()
 		--pre run the callback once on init to pre fill the mod's optionsList
 		--should be fine since the ui functions will simply return the initial values anyway
 		_CModUiCurMod = mod;
-		mod.guiCallback();
 		
-		mod.regenOptions = false;
-		mod.optionsCount = mod.curOptIdx;
+		local guiResult, error = pcall(mod.guiCallback);
+		if not guiResult then
+			log.debug("ModGui Error in " .. mod.modName .. ": " .. error);
+			log.error("ModGui Error in " .. mod.modName .. ": " .. error);
+			mod.modName = "<COL RED>Error: </COL>" .. mod.modName;
+			mod.description = "This mod threw an error on initialization:\n" .. error;
+			mod.optionsCount = 0;
+		else
+			mod.regenOptions = false;
+			mod.optionsCount = mod.curOptIdx;
+		end		
+		
 	
 		CreateOptionDataArrays(mod);
 		AddNewModOptionButton(mod);
