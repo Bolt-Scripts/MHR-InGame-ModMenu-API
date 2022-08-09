@@ -118,7 +118,7 @@ Draws a cycle-able set of options for the user to choose between.
 * `label` displayed name of this setting
 * `curValue` the current/starting index
 * `optionNames` a lua table of the displayed names for each selectable option e.g. `{"Option1", "Option2"}`
-* `(optional) optionMessages` a lua table of tooltips to go along with each option
+* `optionMessages` a lua table of tooltips to go along with each option
 * `(optional) toolTip` message displayed in the system message box while hovering this element
 * `(optional) isImmediateUpdate` if true, the value will update immediately rather than waiting for the user to accept the change
 
