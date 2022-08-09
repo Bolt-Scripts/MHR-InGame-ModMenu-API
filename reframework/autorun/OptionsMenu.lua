@@ -29,9 +29,12 @@ local SAVE_DATA_SUID = 789582228;
 
 
 
-local suidCounter = 0;
+local suidCounter = 1;
 local modStrings = {};
 local modStringsToSuids = {};
+
+modStrings[1] = sdk.to_ptr(sdk.create_managed_string(""):add_ref_permanent());
+modStringsToSuids[""] = 1;
 
 local function GetNewId()
 	suidCounter = suidCounter + 1;
@@ -40,13 +43,14 @@ end
 
 local function StringToSuid(str)
 
+	if not str then return 1; end
+
 	local suid = modStringsToSuids[str];
 	if suid then
 		return suid;
 	end
-
+	
 	--not entirely sure why these strings need to be permanent ref but the game crashes otherwise so whatever
-	if not str then str = ""; end
 	suid = GetNewId();
 	modStrings[suid] = sdk.to_ptr(sdk.create_managed_string(str):add_ref_permanent());
 	modStringsToSuids[str] = suid;
@@ -468,9 +472,6 @@ local function SetDesiredScrollIndexes(maintainIndex, itemCount)
 	end
 end
 
-local function ClampDesiredScrollIndexes()
-	
-end
 
 local function UpdateScrollIndex(clear)
 
@@ -580,9 +581,9 @@ local function FirstOpen()
 		
 		local guiResult, error = pcall(mod.guiCallback);
 		if not guiResult then
-			log.debug("ModGui Error in " .. mod.modName .. ": " .. error);
-			log.error("ModGui Error in " .. mod.modName .. ": " .. error);
-			mod.modName = "<COL RED>Error: </COL>" .. mod.modName;
+			log.debug("ModGui Error in " .. mod.originalName .. ": " .. error);
+			log.error("ModGui Error in " .. mod.originalName .. ": " .. error);
+			mod.modName = "<COL RED>Error: </COL>" .. mod.originalName;
 			mod.description = "This mod threw an error on initialization:\n" .. error;
 			mod.optionsCount = 0;
 		else
@@ -780,7 +781,6 @@ local function PreSetList(args)
 	
 	if desiredScrollIdx >= 0 then
 		--need to override select index here
-		ClampDesiredScrollIndexes();
 		args[4] = sdk.to_ptr(desiredScrollIdx);
 	end	
 	

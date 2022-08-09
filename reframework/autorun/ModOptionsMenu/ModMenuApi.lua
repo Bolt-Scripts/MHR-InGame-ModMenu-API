@@ -23,6 +23,10 @@ local HEADER = 4;
 local BUTTON = 5; --custom type
 
 
+
+
+
+
 local lineBreakPattern = "(" .. ('.'):rep(40) .. ('.?'):rep(16) .. ") " -- in regex: /(.{40,56}) /
 
 local function WrapText(text)
@@ -42,6 +46,11 @@ local function WrapText(text)
 end
 
 local function WrapTextTable(textTable)
+
+	if not textTable then
+		return nil;
+	end
+
 	local newTextTable = {};
 
 	for _, text in ipairs(textTable) do
@@ -51,14 +60,20 @@ local function WrapTextTable(textTable)
 	return newTextTable;
 end
 
+
+
+
+
 function ModUI.OnMenu(name, descript, uiCallback)		
 
 	if not name then name = ""; end
 	if not descript then descript = ""; end
 
 	local mod = {
+		originalName = name;
 		modName = name;
 		modNameSuid = 1;
+		originalDescription = descript;
 		description = WrapText(descript);
 		optionsOrdered = {};
 		guiCallback = uiCallback;
