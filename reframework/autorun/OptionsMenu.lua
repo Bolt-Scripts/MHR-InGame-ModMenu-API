@@ -305,12 +305,25 @@ local function SetOptStrings(opt)
 	end
 end
 
+local function PrintObj(obj)
+	
+	local output = "{\n";
+	for key, value in pairs(obj) do
+		output = output .. "		" .. tostring(key) .. " = " .. tostring(value) .. ",\n";
+	end
+	
+	output = output .. "}";
+	return output;
+end
+
 local function GetNewBaseData(opt)
 	
 	local unifiedData = sdk.create_instance("snow.StmUnifiedOptionBaseData", true):add_ref();
 	local newBaseData = sdk.create_instance("snow.StmGuiOptionData.StmOptionBaseData"):add_ref();
 	
 	if opt then
+	
+		--log.debug(PrintObj(opt));
 	
 		if opt.float then
 			--setting this to 10 is mouse sensitivity and will make it appear as a float
@@ -560,7 +573,7 @@ local function InitMods()
 end
 
 
-local function FirstOpen()	
+local function FirstOpen()
 	
 	defaultSelMsgGuidArr = CreateGuidArray(1, {""});
 	
@@ -586,6 +599,8 @@ local function FirstOpen()
 			mod.modName = "<COL RED>Error: </COL>" .. mod.originalName;
 			mod.description = "This mod threw an error on initialization:\n" .. error;
 			mod.optionsCount = 0;
+			mod.optionsOrdered = {};
+			mod.curOptIdx = 0;
 		else
 			mod.regenOptions = false;
 			mod.optionsCount = mod.curOptIdx;
