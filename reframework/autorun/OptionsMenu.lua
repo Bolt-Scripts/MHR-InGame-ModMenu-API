@@ -657,20 +657,10 @@ local function PreOpt(args)
 end
 
 
-
---GUID PLUGIN TEST
---[[
---I cannot believe this actually worked
-local gid = ValueType.new(sdk.find_type_definition("System.Guid"));
-gid:set_field("mData1", 69420);
-local gPtr = sdk.to_ptr(gid:address());
-re.msg(PtrToGuidTest(gPtr));
-]]--
-
+local guidData1Field = guidType:get_field("mData1");
 local suidArg;
 local function PreMsg(args)
-	--use custom plugin to grab first 32 bits of the guid from the args ptr which is plenty for what we need	
-	suidArg = PtrToGuidTest(args[2]);
+	suidArg = guidData1Field:get_data(args[2]);
 end
 
 local function PostMsg(retval)
