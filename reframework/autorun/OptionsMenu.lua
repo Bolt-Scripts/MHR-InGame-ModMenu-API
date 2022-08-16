@@ -391,7 +391,7 @@ local function AddCreditsEntry()
 	
 	
 	SetBaseDataOptionName(newBaseData, "Created By: <COL RED>Bolt</COL>");
-	SetBaseDataOptionMessage(newBaseData, "Hi, it's <COL YEL>me.</COL>\n\nI made the mod menu ツ");
+	SetBaseDataOptionMessage(newBaseData, "Hi, it's <COL YEL>me.</COL>\nI made the mod menu ツ\nRemember to endorse the mods you like!");
 	
 	newBaseData._PartsType = WATCHITEM;
 	newData._PartsType = WATCHITEM;
@@ -703,6 +703,7 @@ local function PreSelect(args)
 			modMenuIsOpen = false;
 			playSound(nil, uiConfirmSoundID);
 			SwapOptionArray(modBaseDataList, modDataList);
+			reframework:save_config(); --force a config save when we exit a mod menu
 			return sdk.PreHookResult.SKIP_ORIGINAL;
 			
 		elseif mod.optionsOrdered[pressIdx].isBtn then
@@ -797,6 +798,7 @@ local function PreSetList(args)
 		modMenuIsOpen = false;
 		SwapOptionArray(modBaseDataList, modDataList);
 		SetSystemMessage(_CModUiList[1].description);
+		reframework:save_config(); --force a config save when we exit a mod menu
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 end
