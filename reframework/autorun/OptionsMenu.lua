@@ -27,6 +27,11 @@ local OptionName_OFFSET = optionBaseDataType:get_field("_OptionName"):get_offset
 local OptionMessage_OFFSET = optionBaseDataType:get_field("_OptionSystemMessage"):get_offset_from_base();
 local SAVE_DATA_SUID = 789582228;
 
+local function SaveData()
+	if reframework.save_config then
+		reframework:save_config();	
+	end
+end
 
 
 local suidCounter = 1;
@@ -703,7 +708,7 @@ local function PreSelect(args)
 			modMenuIsOpen = false;
 			playSound(nil, uiConfirmSoundID);
 			SwapOptionArray(modBaseDataList, modDataList);
-			reframework:save_config(); --force a config save when we exit a mod menu
+			SaveData(); --force a config save when we exit a mod menu
 			return sdk.PreHookResult.SKIP_ORIGINAL;
 			
 		elseif mod.optionsOrdered[pressIdx].isBtn then
@@ -798,7 +803,7 @@ local function PreSetList(args)
 		modMenuIsOpen = false;
 		SwapOptionArray(modBaseDataList, modDataList);
 		SetSystemMessage(_CModUiList[1].description);
-		reframework:save_config(); --force a config save when we exit a mod menu
+		SaveData(); --force a config save when we exit a mod menu
 		return sdk.PreHookResult.SKIP_ORIGINAL;
 	end
 end
