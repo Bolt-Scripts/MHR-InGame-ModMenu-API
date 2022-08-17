@@ -379,8 +379,8 @@ function ModUI.PromptMsg(promptMessage, callback)
 	
 		local gui_mgr = sdk.get_managed_singleton("snow.gui.GuiManager")
       gui_mgr:call(
-          "setOpenInfo(System.String, snow.gui.GuiCommonInfoBase.Type, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean, System.Boolean)"
-          , promptMessage, 0x1, 0x32, false, false)
+          "setOpenInfo(System.String, snow.gui.GuiCommonInfoBase.Type, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean, System.Boolean, snow.gui.GuiRootBaseBehavior)"
+          , promptMessage, 0x1, 0x32, false, false, nil)
 
       coroutine.yield();
 
