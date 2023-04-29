@@ -454,7 +454,7 @@ local function CreateOptionDataArrays(mod)
 	for idx, opt in ipairs(mod.optionsOrdered) do	
 		local unifiedBaseData, baseData = GetNewBaseData(opt);
 		local unifiedData, data = GetNewData(opt);
-      baseDataArray[idx] = unifiedBaseData;
+    	baseDataArray[idx] = unifiedBaseData;
 		dataArray[idx] = unifiedData;
    end
 	
@@ -580,6 +580,8 @@ end
 
 local function FirstOpen()
 	
+	log.debug("first open")
+
 	defaultSelMsgGuidArr = CreateGuidArray(1, {""});
 	
 	--need to store this here so we can swap between arrays later
@@ -772,6 +774,8 @@ end
 
 local function PreOptionChange(args)
 	
+	log.debug("pre opt: ".."");
+
 	if GetIsModsTabSelected() then
 		if displayedList ~= modBaseDataList and (not modMenuIsOpen) then
 			
@@ -790,11 +794,15 @@ end
 
 local function PreSetList(args)	
 	
+	--noooo idea why or whats going on but it seems snow.gui.GuiOptionWindow.changeOptionState no longer gets called after a game update so i guessssss this works toooo
+	PreOptionChange();
+
 	if desiredScrollIdx >= 0 then
 		--need to override select index here
 		args[4] = sdk.to_ptr(desiredScrollIdx);
 	end	
 	
+	--handle backing out of sub menu
 	--2 is in the state of selecting settings
 	if modMenuIsOpen and optionWindow._State == 1 then
 		--i kinda cant believe this actually works
@@ -824,7 +832,7 @@ local optionWindowType = sdk.find_type_definition("snow.gui.GuiOptionWindow");
 sdk.hook(optionWindowType:get_method("ItemSelectDecideAction()"), PreSelect, PostDef, ignoreJmp);
 sdk.hook(optionWindowType:get_method("setOpenOptionWindow(System.Collections.Generic.List`1<snow.StmOptionDef.StmOptionCategoryType>, snow.gui.GuiOptionWindow._void_OptionFunction, snow.gui.SnowGuiCommonUtility.Segment, System.Boolean)"), PreInitTopMenu, PostDef, ignoreJmp); --what a mouthfull
 sdk.hook(optionWindowType:get_method("initTopMenu"), PreDef, PostInitTopMenu, ignoreJmp);
-sdk.hook(optionWindowType:get_method("changeOptionState"), PreOptionChange, PostDef, ignoreJmp);
+-- sdk.hook(optionWindowType:get_method("changeOptionState(snow.gui.GuiOptionWindow.OptionState)"), PreOptionChange, PostDef, ignoreJmp);
 sdk.hook(optionWindowType:get_method("setOptionList(System.Collections.Generic.List`1<snow.StmUnifiedOptionData>, System.Int32)"), PreSetList, PostDef, ignoreJmp);
 --ItemSelectDecideAction
 --updateSelectValueSelect
